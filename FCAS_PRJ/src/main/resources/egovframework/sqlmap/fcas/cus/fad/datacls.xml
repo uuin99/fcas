@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="datacls">
+	<statement id="datacls.selectListDailyCls" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [DataClsController] datacls.selectListDailyCls */
+		       A.*
+		  FROM (
+					SELECT ROW_NUMBER() OVER(ORDER BY COMP_ID , SHOP_ID , CMRA_GRP_ID , STND_DATE , DOV_CD DESC) AS ROWNUM, * FROM (
+						SELECT   A.COMP_ID, A.SHOP_ID, A.CMRA_GRP_ID
+						       , B.COMP_NM, C.SHOP_NM, CASE A.CMRA_GRP_ID WHEN 'TT' THEN '전체' ELSE D.CMRA_GRP_NM END AS CMRA_GRP_NM
+						       , dbo.FN_DATE_IN_DASH(A.STND_DATE) AS STND_DATE, A.SEX_CD, dbo.FN_CODE_NM('sex_cd', A.SEX_CD) AS SEX_NM
+						       , A.AGE_CD, dbo.FN_CODE_NM('age_cd', A.AGE_CD) AS AGE_NM, A.DOV_CD
+						       , dbo.FN_CODE_NM('dov_cd', A.DOV_CD) AS DOV_NM, SUBSTRING(dbo.FN_DATE_IN_DASH(A.STND_YYMM + '01'),1,7) AS STND_YYMM, DBO.FN_NUM_IN_COMMA(A.ENTER_CNT) AS ENTER_CNT
+						       , CONVERT(VARCHAR, A.WORK_DT, 120) AS WORK_DT
+						       , ISNULL(D.TOTAL_YN,'Y') AS TOTAL_YN, ISNULL(SI.WORK_YN, 'N') AS WORK_YN
+						  FROM FCA_DAILY_STATS_CLASS AS A
+						       LEFT OUTER JOIN FCA_COMP AS B ON A.COMP_ID = B.COMP_ID
+						       LEFT OUTER JOIN FCA_SHOP AS C ON A.COMP_ID = C.COMP_ID AND A.SHOP_ID = C.SHOP_ID
+						       LEFT OUTER JOIN FCA_EQIP_GRP AS D ON A.COMP_ID = D.COMP_ID AND A.SHOP_ID = D.SHOP_ID AND A.CMRA_GRP_ID = D.CMRA_GRP_ID
+						       LEFT OUTER JOIN FCA_SALES_INFO AS SI ON A.COMP_ID = SI.COMP_ID AND A.SHOP_ID = SI.SHOP_ID AND A.STND_DATE = SI.STND_DATE
+						 WHERE 1=1
+						   <isNotEmpty property="COMP_ID">
+						   AND A.COMP_ID = #COMP_ID#
+						   </isNotEmpty>
+						   <isNotEmpty property="SHOP_ID">
+						   AND A.SHOP_ID = #SHOP_ID#
+						   </isNotEmpty>
+						   <isNotEmpty property="STND_DT_START">
+						   AND A.STND_DATE >= #STND_DT_START#
+						   </isNotEmpty>
+						   <isNotEmpty property="STND_DT_END">
+						   AND A.STND_DATE <![CDATA[<=]]> #STND_DT_END#
+						   </isNotEmpty>
+		         	) AS TA
+					WHERE 1=1
+  					  <isEqual property="RADIO_VALUE" compareValue="TT">
+			          AND TA.CMRA_GRP_ID = 'TT'
+			          </isEqual>
+  					  <isEqual property="RADIO_VALUE" compareValue="NOT_TT">
+			          AND TA.CMRA_GRP_ID != 'TT'
+			          </isEqual>
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+
+	<statement id="datacls.selectListDailyClsCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		/* [DataClsController] datacls.selectListDailyClsCount */
+					SELECT COUNT(*) AS CNT FROM (
+						SELECT   A.COMP_ID, A.SHOP_ID, A.CMRA_GRP_ID
+						       , B.COMP_NM, C.SHOP_NM, D.CMRA_GRP_NM
+						       , dbo.FN_DATE_IN_DASH(A.STND_DATE) AS STND_DATE, A.SEX_CD, dbo.FN_CODE_NM('sex_cd', A.SEX_CD) AS SEX_NM
+						       , A.AGE_CD, dbo.FN_CODE_NM('age_cd', A.AGE_CD) AS AGE_NM, A.DOV_CD
+						       , dbo.FN_CODE_NM('dov_cd', A.DOV_CD) AS DOV_NM, SUBSTRING(dbo.FN_DATE_IN_DASH(A.STND_YYMM + '01'),1,7) AS STND_YYMM, A.ENTER_CNT
+						       , CONVERT(VARCHAR, A.WORK_DT, 120) AS WORK_DT
+						  FROM FCA_DAILY_STATS_CLASS AS A
+						       LEFT OUTER JOIN FCA_COMP AS B ON A.COMP_ID = B.COMP_ID
+						       LEFT OUTER JOIN FCA_SHOP AS C ON A.COMP_ID = C.COMP_ID AND A.SHOP_ID = C.SHOP_ID
+						       LEFT OUTER JOIN FCA_EQIP_GRP AS D ON A.COMP_ID = D.COMP_ID AND A.SHOP_ID = D.SHOP_ID AND A.CMRA_GRP_ID = D.CMRA_GRP_ID
+						       LEFT OUTER JOIN FCA_SALES_INFO AS SI ON A.COMP_ID = SI.COMP_ID AND A.SHOP_ID = SI.SHOP_ID AND A.STND_DATE = SI.STND_DATE
+						 WHERE 1=1
+						   <isNotEmpty property="COMP_ID">
+						   AND A.COMP_ID = #COMP_ID#
+						   </isNotEmpty>
+						   <isNotEmpty property="SHOP_ID">
+						   AND A.SHOP_ID = #SHOP_ID#
+						   </isNotEmpty>
+						   <isNotEmpty property="STND_DT_START">
+						   AND A.STND_DATE >= #STND_DT_START#
+						   </isNotEmpty>
+						   <isNotEmpty property="STND_DT_END">
+						   AND A.STND_DATE <![CDATA[<=]]> #STND_DT_END#
+						   </isNotEmpty>
+		         	) AS TA
+					WHERE 1=1
+  					  <isEqual property="RADIO_VALUE" compareValue="TT">
+			          AND TA.CMRA_GRP_ID = 'TT'
+			          </isEqual>
+  					  <isEqual property="RADIO_VALUE" compareValue="NOT_TT">
+			          AND TA.CMRA_GRP_ID != 'TT'
+			          </isEqual>
+
+	</statement>
+
+	<statement id="datacls.selectListTimeCls" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [DataClsController] datacls.selectListTimeCls */
+		       A.*
+		  FROM (
+					SELECT ROW_NUMBER() OVER(ORDER BY COMP_ID , SHOP_ID , CMRA_GRP_ID , STND_DATE , DOV_CD DESC) AS ROWNUM, * FROM (
+						SELECT   A.COMP_ID, A.SHOP_ID, A.CMRA_GRP_ID
+						       , B.COMP_NM, C.SHOP_NM, CASE A.CMRA_GRP_ID WHEN 'TT' THEN '전체' ELSE D.CMRA_GRP_NM END AS CMRA_GRP_NM
+						       , dbo.FN_DATE_IN_DASH(A.STND_DATE) AS STND_DATE, A.SEX_CD, dbo.FN_CODE_NM('sex_cd', A.SEX_CD) AS SEX_NM
+						       , A.AGE_CD, dbo.FN_CODE_NM('age_cd', A.AGE_CD) AS AGE_NM, SUBSTRING(dbo.FN_DATE_IN_DASH(A.STND_YYMM + '01'),1,7) AS STND_YYMM
+						       , DBO.FN_NUM_IN_COMMA(A.ENTER_CNT) AS ENTER_CNT, A.TIME_CD, dbo.FN_CODE_NM('time_cd', A.TIME_CD) AS TIME_NM
+						       , A.TIME_GRP, dbo.FN_CODE_NM('time_grp', A.TIME_GRP) AS TIME_GRP_NM, CONVERT(VARCHAR, A.WORK_DT, 120) AS WORK_DT
+						       , A.DOV_CD
+						       , DBO.FN_CODE_NM('dov_cd' , DOV_CD ) AS DOV_CD_NM
+						       , ISNULL(D.TOTAL_YN,'Y') AS TOTAL_YN, ISNULL(SI.WORK_YN, 'N') AS WORK_YN
+						  FROM FCA_TIMES_STATS_CLASS AS A
+						       LEFT OUTER JOIN FCA_COMP AS B ON A.COMP_ID = B.COMP_ID
+						       LEFT OUTER JOIN FCA_SHOP AS C ON A.COMP_ID = C.COMP_ID AND A.SHOP_ID = C.SHOP_ID
+						       LEFT OUTER JOIN FCA_EQIP_GRP AS D ON A.COMP_ID = D.COMP_ID AND A.SHOP_ID = D.SHOP_ID AND A.CMRA_GRP_ID = D.CMRA_GRP_ID
+						       LEFT OUTER JOIN FCA_SALES_INFO AS SI ON A.COMP_ID = SI.COMP_ID AND A.SHOP_ID = SI.SHOP_ID AND A.STND_DATE = SI.STND_DATE
+						 WHERE 1=1
+						   <isNotEmpty property="COMP_ID">
+						   AND A.COMP_ID = #COMP_ID#
+						   </isNotEmpty>
+						   <isNotEmpty property="SHOP_ID">
+						   AND A.SHOP_ID = #SHOP_ID#
+						   </isNotEmpty>
+						   <isNotEmpty property="STND_DT_START">
+						   AND A.STND_DATE >= #STND_DT_START#
+						   </isNotEmpty>
+						   <isNotEmpty property="STND_DT_END">
+						   AND A.STND_DATE <![CDATA[<=]]> #STND_DT_END#
+						   </isNotEmpty>
+		         	) AS TA
+					WHERE 1=1
+  					  <isEqual property="RADIO_VALUE" compareValue="TT">
+			          AND TA.CMRA_GRP_ID = 'TT'
+			          </isEqual>
+  					  <isEqual property="RADIO_VALUE" compareValue="NOT_TT">
+			          AND TA.CMRA_GRP_ID != 'TT'
+			          </isEqual>
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+
+	<statement id="datacls.selectListTimeClsCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		/* [DataClsController] datacls.selectListTimeClsCount */
+					SELECT COUNT(*) AS CNT FROM (
+						SELECT   A.COMP_ID, A.SHOP_ID, A.CMRA_GRP_ID
+						       , B.COMP_NM, C.SHOP_NM, D.CMRA_GRP_NM
+						       , dbo.FN_DATE_IN_DASH(A.STND_DATE) AS STND_DATE, A.SEX_CD, dbo.FN_CODE_NM('sex_cd', A.SEX_CD) AS SEX_NM
+						       , A.AGE_CD, dbo.FN_CODE_NM('age_cd', A.AGE_CD) AS AGE_NM, SUBSTRING(dbo.FN_DATE_IN_DASH(A.STND_YYMM + '01'),1,7) AS STND_YYMM
+						       , A.ENTER_CNT, A.TIME_CD, dbo.FN_CODE_NM('time_cd', A.TIME_CD) AS TIME_NM
+						       , A.TIME_GRP, dbo.FN_CODE_NM('time_grp', A.TIME_GRP) AS TIME_GRP_NM, CONVERT(VARCHAR, A.WORK_DT, 120) AS WORK_DT
+						       , A.DOV_CD
+						       , DBO.FN_CODE_NM('dov_cd' , DOV_CD ) AS DOV_CD_NM
+						  FROM FCA_TIMES_STATS_CLASS AS A
+						       LEFT OUTER JOIN FCA_COMP AS B ON A.COMP_ID = B.COMP_ID
+						       LEFT OUTER JOIN FCA_SHOP AS C ON A.COMP_ID = C.COMP_ID AND A.SHOP_ID = C.SHOP_ID
+						       LEFT OUTER JOIN FCA_EQIP_GRP AS D ON A.COMP_ID = D.COMP_ID AND A.SHOP_ID = D.SHOP_ID AND A.CMRA_GRP_ID = D.CMRA_GRP_ID
+						       LEFT OUTER JOIN FCA_SALES_INFO AS SI ON A.COMP_ID = SI.COMP_ID AND A.SHOP_ID = SI.SHOP_ID AND A.STND_DATE = SI.STND_DATE
+						 WHERE 1=1
+						   <isNotEmpty property="COMP_ID">
+						   AND A.COMP_ID = #COMP_ID#
+						   </isNotEmpty>
+						   <isNotEmpty property="SHOP_ID">
+						   AND A.SHOP_ID = #SHOP_ID#
+						   </isNotEmpty>
+						   <isNotEmpty property="STND_DT_START">
+						   AND A.STND_DATE >= #STND_DT_START#
+						   </isNotEmpty>
+						   <isNotEmpty property="STND_DT_END">
+						   AND A.STND_DATE <![CDATA[<=]]> #STND_DT_END#
+						   </isNotEmpty>
+		         	) AS TA
+					WHERE 1=1
+  					  <isEqual property="RADIO_VALUE" compareValue="TT">
+			          AND TA.CMRA_GRP_ID = 'TT'
+			          </isEqual>
+  					  <isEqual property="RADIO_VALUE" compareValue="NOT_TT">
+			          AND TA.CMRA_GRP_ID != 'TT'
+			          </isEqual>
+
+	</statement>
+
+</sqlMap>

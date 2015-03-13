@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="common">
+	<!-- File Upload / Download Start -->
+	<statement id="common.getFileMastFileUidSeq" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [CommonController] common.getFileMastFileUidSeq */
+			   ISNULL(MAX(FILE_SEQ),0) AS FILE_SEQ
+		  FROM FCALOB.DBO.FCA_FILE_MAST AS FM
+		 WHERE FM.FILE_UID = #FILE_UID#
+	</statement>
+
+	<statement id="common.insertFileMast" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT /* [CommonController] common.insertFileMast */
+		  INTO FCALOB.DBO.FCA_FILE_MAST
+	          (FILE_UID ,FILE_SEQ
+	         , FILE_NM, FILE_SIZE, FILE_CONT, FILE_CATE
+	         , REGI_DT ,REGI_ID, UPDT_DT, UPDT_ID)
+	    VALUES
+              (#FILE_UID#, #FILE_SEQ#
+             , #FILE_NM#, #FILE_SIZE#, #FILE_CONT#, #FILE_CATE#
+             , GETDATE(), #USER_ID#, GETDATE(), #USER_ID#)
+	</statement>
+
+	<statement id="common.deleteFileMast" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [CommonController] common.deleteFileMast */
+		  FROM FCALOB.DBO.FCA_FILE_MAST
+		 WHERE 1=1
+		   AND FILE_UID = #FILE_UID#
+		   <isNotEmpty property="FILE_SEQ">
+		   AND FILE_SEQ = #FILE_SEQ#
+		   </isNotEmpty>
+	</statement>
+
+	<statement id="common.selectFileMastInfoList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [CommonController] common.selectFileMastInfoList */
+			   ROW_NUMBER() OVER(ORDER BY FM.FILE_SEQ) AS ROWNUM
+			 , FM.FILE_UID, FM.FILE_SEQ
+		     , FM.FILE_NM, FM.FILE_SIZE, FM.FILE_CATE
+		     , FM.REGI_ID, dbo.FN_USER_NM(REGI_ID) AS REGI_NM, CONVERT(VARCHAR, FM.REGI_DT, 120) AS REGI_DT
+		     , FM.UPDT_ID, dbo.FN_USER_NM(UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR, FM.UPDT_DT, 120) AS UPDT_DT
+		     , <![CDATA['<a href='+CHAR(34)+'javascript:fnFileDownload('+CHAR(39)+FILE_UID+CHAR(39)+','+CHAR(39)+CAST(FILE_SEQ AS VARCHAR(100))+CHAR(39)+')'+CHAR(34)+'>'+FILE_NM+'</a>' AS FILE_NM_LINK]]>
+		  FROM FCALOB.DBO.FCA_FILE_MAST AS FM
+		 WHERE 1=1
+		   AND FM.FILE_UID = #FILE_UID#
+		   <isNotEmpty property="FILE_SEQ">
+		   AND FM.FILE_SEQ = #FILE_SEQ#
+		   </isNotEmpty>
+	</statement>
+
+	<statement id="common.selectFileMastInfo" parameterClass="java.util.Map" resultClass="fcas.sys.com.model.FileModel">
+		SELECT /* [CommonController] common.selectFileMastInfo */
+		       FM.FILE_UID, FM.FILE_SEQ
+		     , FM.FILE_NM, FM.FILE_SIZE, FM.FILE_CONT, FM.FILE_CATE
+		  FROM FCALOB.DBO.FCA_FILE_MAST AS FM
+		 WHERE 1=1
+		   AND FM.FILE_UID = #FILE_UID#
+		   AND FM.FILE_SEQ = #FILE_SEQ#
+	</statement>
+	<!-- File Upload / Download End -->
+
+	<!-- Sequence Manager Start -->
+
+	<statement id="common.selectSeq" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [CommonService] common.selectSeq */
+			   SEQ_ID, SEQ_KEY, SEQ_PREFIX, SEQ_TYPE, SEQ_NO
+		  FROM FCA_SEQ
+		 WHERE 1=1
+		   AND SEQ_ID = #SEQ_ID#
+		   <isEqual property="SEQ_TYPE" compareValue="PE-YYYYMM"><!-- Prefix가 날짜형으로 YYYYMM형태를 가질 때 -->
+		   AND SEQ_PREFIX = SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),1,6)
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="PE-YYMM"><!-- Prefix가 날짜형으로 YYMM형태를 가질 때 -->
+		   AND SEQ_PREFIX = SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),3,4)
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="PE-XY4M2"><!-- Prefix가 날짜형으로 YYYYMM형태에 사용자 지정형을 가질 때 -->
+		   AND SEQ_PREFIX = #SEQ_PREFIX# + SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),1,6)
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="PE-XY2M2"><!-- Prefix가 날짜형으로 YYMM형태에 사용자 지정형을 가질 때 -->
+		   AND SEQ_PREFIX = #SEQ_PREFIX# + SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),3,4)
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="PE-XY4M2D2"><!-- Prefix가 날짜형으로 YYYYMMDD형태에 사용자 지정형을 가질 때 -->
+		   AND SEQ_PREFIX = #SEQ_PREFIX# + SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),1,8)
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="PE-XY2M2D2"><!-- Prefix가 날짜형으로 YYMMDD형태에 사용자 지정형을 가질 때 -->
+		   AND SEQ_PREFIX = #SEQ_PREFIX# + SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),3,6)
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="PE-ETC"><!-- Prefix가 사용자 정의형 가질 때 -->
+		   AND SEQ_PREFIX = #SEQ_PREFIX#
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="NO-PE"><!-- Prefix가 존재하지 않을 때 -->
+		   AND SEQ_KEY = #SEQ_KEY#
+		   </isEqual>
+	</statement>
+
+	<statement id="common.insertSeq" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT /* [CommonService] common.insertSeq */
+		  INTO FCA_SEQ
+		      (SEQ_ID, SEQ_KEY
+		     , SEQ_PREFIX
+		     , SEQ_TYPE, SEQ_NO, REGI_ID
+		     , REGI_DT, UPDT_ID, UPDT_DT)
+		VALUES
+		      (#SEQ_ID#, (SELECT ISNULL(MAX(SEQ_KEY) + 1,1) FROM FCA_SEQ WHERE SEQ_ID = #SEQ_ID#)
+		     , (SELECT CASE #SEQ_TYPE#
+						WHEN 'PE-YYYYMM' THEN SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),1,6)
+						WHEN 'PE-YYMM' THEN SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),3,4)
+						WHEN 'PE-XY4M2' THEN #SEQ_PREFIX# + SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),1,6)
+						WHEN 'PE-XY2M2' THEN #SEQ_PREFIX# + SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),3,4)
+						WHEN 'PE-XY4M2D2' THEN #SEQ_PREFIX# + SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),1,8)
+						WHEN 'PE-XY2M2D2' THEN #SEQ_PREFIX# + SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),3,6)
+						WHEN 'PE-ETC' THEN #SEQ_PREFIX#
+						ELSE '' END)
+		     , #SEQ_TYPE#, 1, #REGI_ID#
+		     , GETDATE(), #UPDT_DT#, GETDATE() )
+	</statement>
+
+	<statement id="common.updateSeq" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+	UPDATE /* [CommonService] common.updateSeq */
+		   FCA_SEQ
+	   SET SEQ_NO = SEQ_NO + 1
+	     , UPDT_ID = #UPDT_ID#
+	     , UPDT_DT = GETDATE()
+	 WHERE SEQ_ID = #SEQ_ID#
+		   <isEqual property="SEQ_TYPE" compareValue="PE-YYYYMM"><!-- Prefix가 날짜형으로 YYYYMM형태를 가질 때 -->
+		   AND SEQ_PREFIX = SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),1,6)
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="PE-YYMM"><!-- Prefix가 날짜형으로 YYMM형태를 가질 때 -->
+		   AND SEQ_PREFIX = SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),3,4)
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="PE-XY4M2"><!-- Prefix가 날짜형으로 YYYYMM형태에 사용자 지정형을 가질 때 -->
+		   AND SEQ_PREFIX = #SEQ_PREFIX# + SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),1,6)
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="PE-XY2M2"><!-- Prefix가 날짜형으로 YYMM형태에 사용자 지정형을 가질 때 -->
+		   AND SEQ_PREFIX = #SEQ_PREFIX# + SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),3,4)
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="PE-XY4M2D2"><!-- Prefix가 날짜형으로 YYYYMMDD형태에 사용자 지정형을 가질 때 -->
+		   AND SEQ_PREFIX = #SEQ_PREFIX# + SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),1,8)
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="PE-XY2M2D2"><!-- Prefix가 날짜형으로 YYMMDD형태에 사용자 지정형을 가질 때 -->
+		   AND SEQ_PREFIX = #SEQ_PREFIX# + SUBSTRING(CONVERT(VARCHAR,GETDATE(),112),3,6)
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="PE-ETC"><!-- Prefix가 사용자 정의형 가질 때 -->
+		   AND SEQ_PREFIX = #SEQ_PREFIX#
+		   </isEqual>
+		   <isEqual property="SEQ_TYPE" compareValue="NO-PE"><!-- Prefix가 존재하지 않을 때 -->
+		   AND SEQ_KEY = #SEQ_KEY#
+		   </isEqual>
+	</statement>
+	<!-- Sequence Manager End -->
+
+	<!-- FCA History Create Start -->
+	<statement id="common.insertHist" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT /* [CommonService] common.insertHist */
+		  INTO FCA_HIST
+			 ( USER_ID, HIST_SEQ, LOGIN_ID, HIST_TYPE
+			 , PROG_ID, EVNT_TYPE, ACES_IP
+			 , SRCH_DETL , HIST_DT)
+		VALUES
+			 ( #USER_ID#, (SELECT ISNULL(MAX(HIST_SEQ) + 1,1) FROM FCA_HIST WHERE USER_ID = #USER_ID#), #LOGIN_ID#, #HIST_TYPE#
+			 , #PROG_ID#, #EVNT_TYPE#, #ACES_IP#
+			 , #SRCH_DETL# , GETDATE())
+	</statement>
+
+	<statement id="common.insertHist2" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT /* [CommonService] common.insertHist */
+		  INTO FCA_HIST
+			 ( USER_ID, HIST_SEQ, LOGIN_ID, HIST_TYPE
+			 , PROG_ID, EVNT_TYPE, ACES_IP
+			 , SRCH_DETL, HIST_DT)
+		VALUES
+			 ( #USER_ID#, #HIST_SEQ#, #LOGIN_ID#, #HIST_TYPE#
+			 , #PROG_ID#, #EVNT_TYPE#, #ACES_IP#
+			 , #SRCH_DETL#, GETDATE())
+	</statement>
+
+	<statement id="common.insertHistDetl" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT /* [CommonService] common.insertHistDetl */
+		  INTO FCA_HIST_DETL
+		     ( USER_ID, HIST_SEQ, DETL_SEQ
+		     , SRCH_TILE_CD, SRCH_TILE_NM)
+		 VALUES
+		     (#USER_ID#, #HIST_SEQ#, (SELECT ISNULL(MAX(DETL_SEQ),0) + 1 FROM FCA_HIST_DETL WHERE USER_ID = #USER_ID# AND HIST_SEQ = #HIST_SEQ#)
+		    , #SRCH_TILE_CD#, (SELECT ISNULL((SELECT CD_DESC FROM FCA_CODE WHERE CD_TYPE = 'srch_tile_code' AND CD = #SRCH_TILE_CD#), 'NO_SEARCH_TITIL_CODE')))
+	</statement>
+
+	<statement id="common.selectMaxHistSeq" parameterClass="java.util.Map" resultClass="int">
+		SELECT /* [CommonService] common.selectMaxHistSeq */
+		       ISNULL(MAX(HIST_SEQ),0)
+		  FROM FCA_HIST
+		 WHERE USER_ID = #USER_ID#
+	</statement>
+
+	<statement id="common.selectCdToCddesc" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [CommonService] common.selectCdToCddesc */
+			   CD_DESC
+		  FROM FCA_CODE
+		 WHERE CD_TYPE = 'srch_tile_code'
+		   AND CD IN ($CD_LIST$)
+	</statement>
+
+	<statement id="common.selectCdToMenuDesc" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT /* [CommonService] common.selectCdToMenuDesc */
+			   CD_DESC
+		  FROM FCA_CODE
+		 WHERE CD_TYPE = #SC_MENU_DIV#
+		   AND CD = #SC_MENU_CD#
+	</statement>	
+
+	<!-- FCA History Create End -->
+
+
+	<statement id="common.getDbYmd" resultClass="java.util.HashMap">
+		SELECT CONVERT(VARCHAR, GETDATE(), 112) AS YYYYMMDD
+		     , SUBSTRING( CONVERT(VARCHAR, GETDATE(), 120) , 0 ,11 )  AS YYYY_MM_DD
+		     , SUBSTRING( CONVERT(VARCHAR, GETDATE(), 112) , 0, 5) YYYY
+		     , SUBSTRING( CONVERT(VARCHAR, GETDATE(), 112) , 5, 2) MM
+		     , SUBSTRING( CONVERT(VARCHAR, GETDATE(), 112) , 7, 2) DD
+		     , SUBSTRING( datename(dw,getdate())  , 0 , 2) AS DATE_NAME
+	</statement>
+	<statement id="common.getDbYmdStandard" resultClass="java.util.HashMap">
+		SELECT CONVERT(VARCHAR, GETDATE()-1, 112) AS YYYYMMDD
+		     , SUBSTRING( CONVERT(VARCHAR, GETDATE()-1, 120) , 0 ,11 )  AS YYYY_MM_DD
+		     , SUBSTRING( CONVERT(VARCHAR, GETDATE()-1, 112) , 0, 5) YYYY
+		     , SUBSTRING( CONVERT(VARCHAR, GETDATE()-1, 112) , 5, 2) MM
+		     , SUBSTRING( CONVERT(VARCHAR, GETDATE()-1, 112) , 7, 2) DD
+		     , SUBSTRING( datename(dw,getdate()-1)  , 0 , 2) AS DATE_NAME
+	</statement>
+	<statement id="common.getDbYmdCustom" parameterClass="java.lang.String" resultClass="java.util.HashMap">
+		SELECT CONVERT(VARCHAR, CONVERT( DATETIME, #ymd#), 112) AS YYYYMMDD
+		     , SUBSTRING( CONVERT(VARCHAR, CONVERT( DATETIME, #ymd#), 120) , 0 ,11 )  AS YYYY_MM_DD
+		     , SUBSTRING( CONVERT(VARCHAR, CONVERT( DATETIME, #ymd#), 112) , 0, 5) YYYY
+		     , SUBSTRING( CONVERT(VARCHAR, CONVERT( DATETIME, #ymd#), 112) , 5, 2) MM
+		     , SUBSTRING( CONVERT(VARCHAR, CONVERT( DATETIME, #ymd#), 112) , 7, 2) DD
+		     , SUBSTRING( datename(dw,CONVERT( DATETIME, #ymd#))  , 0 , 2) AS DATE_NAME
+	</statement>
+	<statement id="common.getKwthInfo" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT    A.SHOP_NM
+				, C.KWTH_STAT_NM
+				, C.TEMP
+		FROM  FCA_SHOP A
+			 ,FCA_KWTH_ADDR B
+			 ,FCA_KWTH_INFO C
+		WHERE A.KWTH_ADDR_CODE  = B.POINT_CODE
+		  AND B.POINT_CODE = C.POINT_CODE
+		  AND C.STND_DATE  = #STND_DATE#
+		  AND C.TIME_GRP   = #TIME_GRP#
+		  AND A.SHOP_ID    = #SHOP_ID#
+		  AND A.COMP_ID    = #COMP_ID#
+	</statement>
+
+	<statement id="common.getSmsSendList" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT SMS_SEQ, SMS_TO, SMS_FROM
+		     , SMS_DATE, SMS_MSG, SMS_TO_ID
+		     , SMS_TO_NM, REGI_ID
+		  FROM FCA_SMS_INFO
+		 WHERE 1 = 1
+		   AND RET_CODE IS NULL
+		   AND SMS_EXEC_DT IS NULL
+		   AND SMS_DATE <![CDATA[<=]]> CONVERT(VARCHAR, GETDATE(), 120)
+	</statement>
+	<statement id="common.updateSmsInfo" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		UPDATE FCA_SMS_INFO
+		   SET RET_CODE = #RET_CODE#
+		     , RET_MSG = #RET_MSG#
+		     , RET_LAST_POINT = #RET_LAST_POINT#
+		     , SMS_EXEC_DT = GETDATE()
+		 WHERE SMS_SEQ = #SMS_SEQ#
+	</statement>
+
+	<statement id="common.runMakeNecRawSample" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		EXEC sp_runnecrawsmpl
+	</statement>
+
+	<statement id="common.runMakeNecRaw" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		EXEC sp_necrawtrnstofcas
+	</statement>
+
+</sqlMap>

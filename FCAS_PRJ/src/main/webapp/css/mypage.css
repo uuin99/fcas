@@ -1,0 +1,184 @@
+/* common */
+body{
+    width:100%; height:100%; letter-spacing:-1px; font-family:맑은 고딕, 돋움, 굴림; font-size:12px;
+}
+a { text-decoration: none; }
+a:LINK { color: #464646; }
+a:VISITED { color: #464646; }
+a:HOVER { color: #0D68B5; }
+
+.space{width:30px; float:left; position:relative;}
+
+/* Layout */
+.wrap{width:797px;margin-left:30px;}
+
+/* 마이페이지 */
+.mypage{display:block;clear:both;margin-top:10px;margin-bottom:5px;height:30px;}
+  .mypage_title{float:left;color:#0d68b5;font-size:15px;font-weight:bold;line-height:30px;background-image:url('/images/sub_title_dot.png'); background-repeat:no-repeat; background-position:left; padding:0px 0px 0px 10px;}
+
+/* 위치표시 */
+.text7{
+	float:right;
+	font-size:11px;color:#a6a7a8;
+	text-align:right;line-height:30px;
+}
+
+/* 사용자 정보 */
+.user_info{display:block;clear:both;}
+.user_text{
+	float:left;width:650px;
+	font-size:12px; height:20px;
+	padding:0px 2px 2px 0px;	
+}
+.user_icon{padding:0px 2px 2px 0px; float:left;}
+.user_info{float:left;}
+.user_date{
+	float:left;
+	font-size:12px;width:160px;
+	color:#505050;text-align:left; height:20px;
+	padding-left:10px;
+} 
+.user_line{float:left; width:797px; margin-bottom:10px; height:1px; border-bottom:1px solid #CFCFCF;}
+.user_line02{float:left; width:797px; margin-bottom:40px; height:1px; border-bottom:1px solid #CFCFCF;}
+
+/* 공지사항&날씨정보 */
+.top_all{
+	clear:both; border-top:1px solid #CFCFCF;
+	width:797px;
+	margin-bottom:40px;
+    }
+	
+/* 공지사항 */
+.notice_all{
+	width:398px;height:100%;float:left;border-right:1px solid #CFCFCF;padding:20px 20px 20px 0;}
+
+.notice_title{clear:both;height:25px;}
+  .notice_icon{
+	  float:left; height:16px; line-height:14px;
+	  font-size:15px;color:#2f528e;font-weight:bold;
+	  background-image:url('/images/mypage/arrow.png'); background-repeat:no-repeat; padding-left:12px;
+	  }
+   .notice_more{float:right;height:16px;line-height:16px;}
+.notice_list{float:left; width:380px;margin-left:5px;height:20px;}
+    .notice_list .news{float:left; width:300px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; -o-text-overflow:ellipsis; -ms-text-overflow:ellipsis;}
+      .notice_list .news a{text-decoration:none;}
+      .notice_list .news a:hover, a:active{color:#0d68b5;}
+	.notice_list .date{width:60px; float:right; text-align:right; padding-right:5px; color:#505050;}
+   
+/* 날씨정보 */
+.weather{
+	width:370px;height:100%;float:left;padding:20px 0 20px 20px;}
+	
+.weather_all{margin:0;clear:both;width:370px;}
+  .weather_icon{float:left;width:80px;padding:5px;text-align:center;}
+  .weather_info01{float:left;width:140px;padding-right:10px;}
+  .weather_info02{float:right;width:140px;padding-left:10px;}
+  .weather_line01{
+	  width:140px;height:25px;line-height:25px;float:left;text-align:center;
+	  border-bottom:1px solid #CFCFCF;
+	  font-size:13px;color:#2f528e;}
+  .weather_line02{
+	  width:140px;height:30px;line-height:30px;float:left;text-align:center;
+	  font-size:13px;color:#2f528e;}
+
+/* 게시판전체 */
+.table_line{height:25px; line-height:25px; border-bottom:1px solid #CFCFCF; clear:both;}
+.table_line01{border-bottom:2px solid #CFCFCF; clear:both;}
+.table_line02{height:25px; border-bottom:1px solid #CFCFCF; clear:both;}
+
+.table_all01{float:left;width:797px;margin-bottom:45px;padding:0;clear:both;}
+.table_all02{float:left;width:797px;margin-bottom:10px;padding:0;clear:both;}
+.table_all03{float:left;height:157px;margin-bottom:45px;padding:0;clear:both;}
+.table_all04{float:left;height:137px;margin-bottom:45px;padding:0;clear:both;}
+
+/* 기본 정보 */ 
+.table_sub01{width:382px; float:left;}
+  .table_sub01_cell01{
+  	border-right:1px solid #CFCFCF;
+    float:left;width:120px; height:25px; line-height:25px; padding:2px 0px 0px 0px;
+	font-size:13px;font-weight:bold;color:#2f528e;padding-left:6px; text-align:center;
+	}
+  .table_sub01_cell02{
+    float:left; width:240px; height:25px; line-height:25px;
+    font-size:13px;color:#646464;
+	padding:2px 0px 0px 0px; text-align:center;
+}
+
+/* 최근접속정보 */
+.table_sub02{width:382px; float:right;}
+  .table_sub02_cell01{
+    float:left;width:110px; height:25px; line-height:23px; padding:2px 0px 0px 0px;
+	font-size:13px;font-weight:bold;color:#2f528e;padding-left:6px;
+	}
+  .table_sub02_cell02{
+    float:left; height:25px; line-height:23px;
+    font-size:13px;color:#646464;
+	padding:2px 0px 0px 0px;
+    }
+	
+/* 고객문의 내역 & 장애처리 내역 */
+.table_sub03{width:382px; float:left;}
+  .table_sub03_cell01{
+	border-right:1px solid #CFCFCF; 
+    float:left; width:120px; height:60px; line-height:60px; padding:2px 0px 0px 0px; text-align:center;
+	font-size:13px;font-weight:bold;color:#646464;padding-left:6px;
+	}
+  .table_sub03_cell02{
+    float:left; width:120px; height:60px; line-height:60px; padding:2px 0px 0px 0px; text-align:center;
+	font-size:13px;font-weight:bold;color:#646464;padding-left:6px;
+	}
+  .table_sub03_cell01 a{color:#ff4700; text-decoration:underline; font-weight:bold;}
+  .table_sub03_cell01 a:hover, a:active{color:#ff8400;}
+  .table_sub03_cell02 a{color:#ff4700; text-decoration:underline; font-weight:bold;}
+  .table_sub03_cell02 a:hover, a:active{color:#ff8400;}
+  
+/* 객층별현황 */
+.table_sub04{width:382px; float:right;}
+  .table_sub04_cell01{
+	border-right:1px solid #CFCFCF;
+    float:left; width:120px; height:25px; line-height:25px; padding:2px 0px 0px 0px; text-align:center;
+	font-size:13px;font-weight:bold;color:#2f528e;padding-left:6px;
+	}
+  .table_sub04_cell02{
+    float:left; width:120px; height:25px; line-height:25px; padding:2px 0px 0px 0px; text-align:center;
+	font-size:13px;font-weight:bold;color:#2f528e; padding-left:6px;
+	}
+  .table_sub04_cell03{
+	border-right:1px solid #CFCFCF;
+    float:left; width:120px; height:25px; line-height:25px; padding:2px 0px 0px 0px; text-align:center;
+	font-size:13px;color:#646464;padding-left:6px;
+	}
+  .table_sub04_cell04{
+    float:left; width:120px; height:25px; line-height:25px; padding:2px 0px 0px 0px; text-align:center;
+	font-size:13px;color:#646464; padding-left:6px;
+	}
+
+/* 타이틀 */
+.title_bg{height:26px; clear:both; background-image:url('/images/mypage/title_bg.png'); background-repeat:x-repeat;}
+.title_text{
+	font-size:15px;color:#fff;font-weight:bold;
+	padding:2px 0 0 5px;
+	float:left; width:178px; height:26px; background-image:url('/images/mypage/title.png'); background-repeat:no-repeat;
+}
+.title_btn{float:right; height:10px; margin-top:8px;}
+
+/* 배경없는 타이틀 */
+.title01_bg{height:26px; clear:both;}
+.title01_text{
+	font-size:13px;color:#2f528e;font-weight:bold;
+	padding:2px 0 0 5px;
+	float:left; width:178px; height:26px; line-height:21px;
+}
+
+.text1 {
+	font-size:14px;
+	font-weight:bold;
+	color:#2f528e;
+	text-indent:6px;
+	padding:3px 0px 0px 0px;
+}
+.text3{
+	font-size:14px;
+	color:#646464;
+	padding:3px 0px 0px 0px;
+} 

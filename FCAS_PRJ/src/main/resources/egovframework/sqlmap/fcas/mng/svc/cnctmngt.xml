@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="cnctmngt">
+	<statement id="cnctmngt.getCnctList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [CnctMngtController] cnctmngt.getCnctList */
+		       A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY A.CNCT_NO) AS ROWNUM
+				     , A.CNCT_NO, A.COMP_ID, B.COMP_NM, dbo.FN_DATE_IN_DASH(A.CNCT_STRT_DATE) AS CNCT_STRT_DATE, dbo.FN_DATE_IN_DASH(A.CNCT_END_DATE) AS CNCT_END_DATE, A.CMRA_CNT
+				     , A.SHOP_CNT, A.CNCT_TOT_AMT, A.SRVC_AMT, A.BNFT_AMT, A.SALE_MNG_ID
+				     , A.OBTN_NO, A.RMRK, A.FILE_UID, A.CNCT_STAT
+				     , A.REGI_ID, DBO.FN_USER_NM(A.REGI_ID) AS REGI_NM, CONVERT(VARCHAR,A.REGI_DT,120) AS REGI_DT
+				     , A.UPDT_ID, DBO.FN_USER_NM(A.UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR,A.UPDT_DT,120) AS UPDT_DT
+				     , dbo.FN_CODE_NM('contract_mng', A.CNCT_STAT) AS CNCT_STAT_NM
+				     , dbo.FN_USER_NM(A.SALE_MNG_ID) AS SALE_MNG_NM 
+				  FROM FCA_CNCT AS A
+				       INNER JOIN FCA_COMP AS B ON A.COMP_ID = B.COMP_ID
+				 WHERE 1 = 1
+				   <isNotEmpty property="COMP_ID">
+				   AND A.COMP_ID = #COMP_ID#
+				   </isNotEmpty>
+				   <isNotEmpty property="OBTN_NO">
+				   AND A.OBTN_NO LIKE '%' + #OBTN_NO# + '%'
+				   </isNotEmpty>
+				   <isNotEmpty property="CNCT_STAT">
+				   AND A.CNCT_STAT = #CNCT_STAT#
+				   </isNotEmpty>
+				   <isNotEmpty property="REGI_DT_START">
+				   AND A.CNCT_STRT_DATE >= #REGI_DT_START#
+				   </isNotEmpty>
+				   <isNotEmpty property="REGI_DT_END">
+				   AND A.CNCT_STRT_DATE <![CDATA[<=]]> #REGI_DT_END#
+				   </isNotEmpty>
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+
+	<statement id="cnctmngt.getCnctListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [CnctMngtController] cnctmngt.getCnctListCount */ 
+			   COUNT(*) AS CNT
+		  FROM FCA_CNCT AS A
+		       INNER JOIN FCA_COMP AS B ON A.COMP_ID = B.COMP_ID
+		 WHERE 1 = 1
+		   <isNotEmpty property="COMP_ID">
+		   AND A.COMP_ID = #COMP_ID#
+		   </isNotEmpty>
+		   <isNotEmpty property="OBTN_NO">
+		   AND A.OBTN_NO LIKE '%' + #OBTN_NO# + '%'
+		   </isNotEmpty>
+		   <isNotEmpty property="CNCT_STAT">
+		   AND A.CNCT_STAT = #CNCT_STAT#
+		   </isNotEmpty>
+		   <isNotEmpty property="REGI_DT_START">
+		   AND A.CNCT_STRT_DATE >= #REGI_DT_START#
+		   </isNotEmpty>
+		   <isNotEmpty property="REGI_DT_END">
+		   AND A.CNCT_STRT_DATE <![CDATA[<=]]> #REGI_DT_END#
+		   </isNotEmpty>
+	</statement>
+
+	<statement id="cnctmngt.selectCnct" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [CnctMngtController] cnctmngt.selectCnct */
+		       A.CNCT_NO, A.COMP_ID, B.COMP_NM, dbo.FN_DATE_IN_DASH(A.CNCT_STRT_DATE) AS CNCT_STRT_DATE, dbo.FN_DATE_IN_DASH(A.CNCT_END_DATE) AS CNCT_END_DATE, A.CMRA_CNT
+		     , A.SHOP_CNT, A.CNCT_TOT_AMT, A.SRVC_AMT, A.BNFT_AMT, A.SALE_MNG_ID
+		     , A.OBTN_NO, A.RMRK, A.FILE_UID, A.CNCT_STAT
+		     , A.REGI_ID, DBO.FN_USER_NM(A.REGI_ID) AS REGI_NM, CONVERT(VARCHAR,A.REGI_DT,120) AS REGI_DT
+		     , A.UPDT_ID, DBO.FN_USER_NM(A.UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR,A.UPDT_DT,120) AS UPDT_DT
+		     , dbo.FN_CODE_NM('contract_mng', A.CNCT_STAT) AS CNCT_STAT_NM
+		     , dbo.FN_USER_NM(A.SALE_MNG_ID) AS SALE_MNG_NM
+		     , dbo.FN_USER_INFO(A.REGI_ID, A.REGI_DT) AS REGI_INFO
+		     , dbo.FN_USER_INFO(A.UPDT_ID, A.UPDT_DT) AS UPDT_INFO
+		  FROM FCA_CNCT AS A
+		       INNER JOIN FCA_COMP AS B ON A.COMP_ID = B.COMP_ID
+		       LEFT OUTER JOIN fcalob.dbo.FCA_FILE_MAST AS C ON A.FILE_UID = C.FILE_UID AND 1 = C.FILE_SEQ
+		 WHERE 1 = 1
+		   AND A.CNCT_NO = #CNCT_NO#
+	</statement>
+
+	<statement id="cnctmngt.selectCnctExcel" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [CnctMngtController] cnctmngt.selectCnct */
+		       A.CNCT_NO, A.COMP_ID, B.COMP_NM, dbo.FN_DATE_IN_DASH(A.CNCT_STRT_DATE) AS CNCT_STRT_DATE, dbo.FN_DATE_IN_DASH(A.CNCT_END_DATE) AS CNCT_END_DATE, A.CMRA_CNT
+		     , A.SHOP_CNT, A.CNCT_TOT_AMT, A.SRVC_AMT, A.BNFT_AMT, A.SALE_MNG_ID
+		     , A.OBTN_NO, A.RMRK, A.FILE_UID, A.CNCT_STAT
+		     , A.REGI_ID, DBO.FN_USER_NM(A.REGI_ID) AS REGI_NM, CONVERT(VARCHAR,A.REGI_DT,120) AS REGI_DT
+		     , A.UPDT_ID, DBO.FN_USER_NM(A.UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR,A.UPDT_DT,120) AS UPDT_DT
+		     , dbo.FN_CODE_NM('contract_mng', A.CNCT_STAT) AS CNCT_STAT_NM
+		     , dbo.FN_USER_NM(A.SALE_MNG_ID) AS SALE_MNG_NM
+		     , dbo.FN_USER_INFO(A.REGI_ID, A.REGI_DT) AS REGI_INFO
+		     , dbo.FN_USER_INFO(A.UPDT_ID, A.UPDT_DT) AS UPDT_INFO
+		  FROM FCA_CNCT AS A
+		       INNER JOIN FCA_COMP AS B ON A.COMP_ID = B.COMP_ID
+		       LEFT OUTER JOIN fcalob.dbo.FCA_FILE_MAST AS C ON A.FILE_UID = C.FILE_UID AND 1 = C.FILE_SEQ
+		 WHERE 1 = 1
+		   <isNotEmpty property="COMP_ID">
+		   AND A.COMP_ID = #COMP_ID#
+		   </isNotEmpty>
+		   <isNotEmpty property="OBTN_NO">
+		   AND A.OBTN_NO LIKE '%' + #OBTN_NO# + '%'
+		   </isNotEmpty>
+		   <isNotEmpty property="CNCT_STAT">
+		   AND A.CNCT_STAT = #CNCT_STAT#
+		   </isNotEmpty>
+		   <isNotEmpty property="REGI_DT_START">
+		   AND A.CNCT_STRT_DATE >= #REGI_DT_START#
+		   </isNotEmpty>
+		   <isNotEmpty property="REGI_DT_END">
+		   AND A.CNCT_STRT_DATE <![CDATA[<=]]> #REGI_DT_END#
+		   </isNotEmpty>
+	</statement>
+
+	<statement id="cnctmngt.insertCnct" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT /* [CnctMngtController] cnctmngt.insertCnct */
+		  INTO FCA_CNCT
+		    (CNCT_NO, COMP_ID, CNCT_STRT_DATE, CNCT_END_DATE, CMRA_CNT
+		   , SHOP_CNT, CNCT_TOT_AMT, SRVC_AMT, BNFT_AMT, SALE_MNG_ID
+		   , OBTN_NO, RMRK, FILE_UID, CNCT_STAT, REGI_ID
+		   , REGI_DT, UPDT_ID, UPDT_DT)
+		VALUES 
+		    (#CNCT_NO#, #COMP_ID#, REPLACE(#CNCT_STRT_DATE#,'-',''), REPLACE(#CNCT_END_DATE#,'-',''), REPLACE(#CMRA_CNT#,',','')
+		   , REPLACE(#SHOP_CNT#,',',''), REPLACE(#CNCT_TOT_AMT#,',',''), REPLACE(#SRVC_AMT#,',',''), REPLACE(#BNFT_AMT#,',',''), #SALE_MNG_ID#
+		   , #OBTN_NO#, #RMRK#, #FILE_UID#, #CNCT_STAT#, #REGI_ID#
+		   , GETDATE(), #UPDT_ID#, GETDATE())
+	</statement>
+
+	<statement id="cnctmngt.updateCnct" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [CnctMngtController] cnctmngt.updateCnct */
+		       FCA_CNCT
+		   SET COMP_ID = #COMP_ID#
+		     , CNCT_STRT_DATE = REPLACE(#CNCT_STRT_DATE#,'-','')
+		     , CNCT_END_DATE = REPLACE(#CNCT_END_DATE#,'-','')
+		     , CMRA_CNT = REPLACE(#CMRA_CNT#,',','')
+		     , SHOP_CNT = REPLACE(#SHOP_CNT#,',','')
+		     , CNCT_TOT_AMT = REPLACE(#CNCT_TOT_AMT#,',','')
+		     , SRVC_AMT = REPLACE(#SRVC_AMT#,',','')
+		     , BNFT_AMT = REPLACE(#BNFT_AMT#,',','')
+		     , SALE_MNG_ID = #SALE_MNG_ID#
+		     , OBTN_NO = #OBTN_NO#
+		     , RMRK = #RMRK#
+		     , FILE_UID = #FILE_UID#
+		     , CNCT_STAT = #CNCT_STAT#
+		     , UPDT_ID = #UPDT_ID#
+		     , UPDT_DT = GETDATE()
+		 WHERE CNCT_NO = #CNCT_NO# 
+ 
+	</statement>
+
+	<statement id="cnctmngt.deleteCnct" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [CnctMngtController] cnctmngt.deleteCnct */
+		  FROM FCA_CNCT
+		 WHERE CNCT_NO = #CNCT_NO#
+	</statement>
+	
+</sqlMap>

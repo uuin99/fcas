@@ -1,0 +1,817 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="shopstrdreportcpa">
+
+	<typeAlias  alias="egovMap"          type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+
+	<statement id="shopstrdreportcpa.selectChart_0_1" parameterClass="java.util.Map" resultClass="egovMap">
+		/* [] shopstrdreportcpa.selectChart_0_1 */
+		SELECT SUBSTRING(STND_DATE,1,4) + '-' + SUBSTRING(STND_DATE,5,2) + '-' + SUBSTRING(STND_DATE,7,2) AS STND_DATE
+		     , SUM(ENTER_CNT) AS SUM_CNT
+          FROM FCA_DAILY_STATS_CNT
+		 WHERE 1 = 1
+		   AND COMP_ID =  #searchCompId#
+		   AND CMRA_GRP_ID = 'TT'
+		   AND STND_DATE IN ( #targetDay# , #nowDate# )
+		 GROUP BY STND_DATE
+	</statement>
+
+	<statement id="shopstrdreportcpa.selectChart_0_2" parameterClass="java.util.Map" resultClass="egovMap">
+		/* [] shopstrdreportcpa.selectChart_0_2 */
+		WITH H_TABLE (
+			 CNT_06_09
+			,CNT_09_12
+		    ,CNT_12_15
+		    ,CNT_15_18
+		    ,CNT_18_21
+		    ,CNT_21_24
+		    ,CNT_24_03
+		    ,CNT_03_06
+		) AS (
+				SELECT
+				         SUM(CASE WHEN ( TA.time_cd = '07' OR TA.time_cd = '08' OR TA.time_cd = '09' ) THEN TA.ENTER_CNT ELSE 0 END) AS 'CNT_06_09'
+				       , SUM(CASE WHEN ( TA.time_cd = '10' OR TA.time_cd = '11' OR TA.time_cd = '12' ) THEN TA.ENTER_CNT ELSE 0 END) AS 'CNT_09_12'
+				       , SUM(CASE WHEN ( TA.time_cd = '13' OR TA.time_cd = '14' OR TA.time_cd = '15' ) THEN TA.ENTER_CNT ELSE 0 END) AS 'CNT_12_15'
+				       , SUM(CASE WHEN ( TA.time_cd = '16' OR TA.time_cd = '17' OR TA.time_cd = '18' ) THEN TA.ENTER_CNT ELSE 0 END) AS 'CNT_15_18'
+				       , SUM(CASE WHEN ( TA.time_cd = '19' OR TA.time_cd = '20' OR TA.time_cd = '21' ) THEN TA.ENTER_CNT ELSE 0 END) AS 'CNT_18_21'
+				       , SUM(CASE WHEN ( TA.time_cd = '22' OR TA.time_cd = '23' OR TA.time_cd = '24' ) THEN TA.ENTER_CNT ELSE 0 END) AS 'CNT_21_24'
+				       , SUM(CASE WHEN ( TA.time_cd = '01' OR TA.time_cd = '02' OR TA.time_cd = '03' ) THEN TA.ENTER_CNT ELSE 0 END) AS 'CNT_24_03'
+				       , SUM(CASE WHEN ( TA.time_cd = '04' OR TA.time_cd = '05' OR TA.time_cd = '06' ) THEN TA.ENTER_CNT ELSE 0 END) AS 'CNT_03_06'
+				 FROM (
+							SELECT TIME_CD
+							     , SUM(ENTER_CNT) AS 'ENTER_CNT'
+							  FROM FCA_TIMES_STATS_CNT WHERE 1 = 1
+							   AND COMP_ID   = #searchCompId#
+							   AND STND_DATE = #nowDate#
+							   AND CMRA_GRP_ID = 'TT'
+							GROUP BY TIME_CD
+				) TA
+		)
+		SELECT '21시~24시' AS TIME , CNT_21_24 AS CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '18시~21시' AS TIME , CNT_18_21 AS CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '15시~18시' AS TIME , CNT_15_18 AS CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '12시~15시' AS TIME , CNT_12_15 AS CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '09시~12시' AS TIME , CNT_09_12 AS CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '06시~09시' AS TIME , CNT_06_09 AS CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '03시~06시' AS TIME , CNT_03_06 AS CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '00시~03시' AS TIME , CNT_24_03 AS CNT  FROM H_TABLE A
+	</statement>
+
+	<statement id="shopstrdreportcpa.selectChart_1_1" parameterClass="java.util.Map" resultClass="egovMap">
+		 /* [] shopstrdreportcpa.selectChart_1_1 */
+		SELECT '성별' AS SEX_NM
+			  , SUM(CASE WHEN SEX_CD = 'F' THEN ENTER_CNT ELSE 0 END) AS 'F_CNT'
+		      , SUM(CASE WHEN SEX_CD = 'M' THEN ENTER_CNT ELSE 0 END) AS 'M_CNT'
+		  FROM FCA_DAILY_STATS_CLASS
+		 WHERE 1 = 1
+		   AND SEX_CD <![CDATA[<>]]> 'T'
+		   AND COMP_ID = #searchCompId#
+		   AND CMRA_GRP_ID = 'TT'
+		   AND STND_DATE = #nowDate#
+		   AND AGE_CD = 'TT'
+		 GROUP BY STND_DATE ORDER BY STND_DATE
+	</statement>
+
+	<statement id="shopstrdreportcpa.selectChart_1_1_new" parameterClass="java.util.Map" resultClass="egovMap">
+		 /* [] shopstrdreportcpa.selectChart_1_1_new */
+		WITH H_TABLE (
+			 F_CNT
+			,M_CNT
+		) AS (
+				SELECT  SUM(CASE WHEN SEX_CD = 'F' THEN ENTER_CNT ELSE 0 END) AS 'F_CNT'
+				      , SUM(CASE WHEN SEX_CD = 'M' THEN ENTER_CNT ELSE 0 END) AS 'M_CNT'
+				  FROM FCA_DAILY_STATS_CLASS
+				 WHERE 1 = 1
+				   AND SEX_CD <![CDATA[<>]]> 'T'
+				   AND COMP_ID = #searchCompId#
+				   AND CMRA_GRP_ID = 'TT'
+				   AND STND_DATE = #nowDate#
+				   AND AGE_CD = 'TT'
+				 GROUP BY STND_DATE
+		)
+		SELECT '여성' AS SEX_NM , F_CNT AS CNT FROM H_TABLE A
+		UNION  ALL
+		SELECT '남성' AS SEX_NM , M_CNT AS CNT FROM H_TABLE A
+	</statement>
+
+	<statement id="shopstrdreportcpa.selectChart_1_2" parameterClass="java.util.Map" resultClass="egovMap">
+		 /* [] shopstrdreportcpa.selectChart_1_2 */
+		SELECT AGE_CD
+              ,dbo.FN_CODE_NM('age_cd',AGE_CD) AS 'AGE_NM'
+              ,SUM( CASE WHEN SEX_CD = 'F' THEN ENTER_CNT ELSE 0 END ) AS 'F_CNT'
+              ,SUM( CASE WHEN SEX_CD = 'M' THEN ENTER_CNT ELSE 0 END ) AS 'M_CNT'
+              ,SUM( CASE WHEN SEX_CD = 'F' THEN ENTER_CNT ELSE 0 END ) + SUM( CASE WHEN SEX_CD = 'M' THEN ENTER_CNT ELSE 0 END ) AS F_M_TOT
+          FROM FCA_DAILY_STATS_CLASS
+         WHERE 1 = 1
+           AND SEX_CD <![CDATA[<>]]> 'T'
+           AND COMP_ID = #searchCompId#
+           AND CMRA_GRP_ID = 'TT'
+           AND STND_DATE = #nowDate#
+           AND AGE_CD <![CDATA[<>]]> 'TT'
+         GROUP BY AGE_CD ORDER BY AGE_CD
+	</statement>
+
+
+	<statement id="shopstrdreportcpa.selectTableData_1_2" parameterClass="java.util.Map" resultClass="egovMap">
+		 /* [] shopstrdreportcpa.selectTableData_1_2 */
+		SELECT
+		       TA.TOT_CNT
+		      ,TA.C_00_CNT
+		      ,TA.C_10_CNT
+		      ,TA.C_20_CNT
+		      ,TA.C_30_CNT
+		      ,TA.C_40_CNT
+		      ,TA.C_50_CNT
+		      ,TA.C_60_CNT
+		      ,ROUND( ( SELECT  CONVERT(float, TA.C_00_CNT) / CONVERT(float, TA.TOT_CNT) * 100 ) , 2)   AS  PER_00
+		      ,ROUND( ( SELECT  CONVERT(float, TA.C_10_CNT) / CONVERT(float, TA.TOT_CNT) * 100 ) , 2)   AS  PER_10
+		      ,ROUND( ( SELECT  CONVERT(float, TA.C_20_CNT) / CONVERT(float, TA.TOT_CNT) * 100 ) , 2)   AS  PER_20
+		      ,ROUND( ( SELECT  CONVERT(float, TA.C_30_CNT) / CONVERT(float, TA.TOT_CNT) * 100 ) , 2)   AS  PER_30
+		      ,ROUND( ( SELECT  CONVERT(float, TA.C_40_CNT) / CONVERT(float, TA.TOT_CNT) * 100 ) , 2)   AS  PER_40
+		      ,ROUND( ( SELECT  CONVERT(float, TA.C_50_CNT) / CONVERT(float, TA.TOT_CNT) * 100 ) , 2)   AS  PER_50
+		      ,ROUND( ( SELECT  CONVERT(float, TA.C_60_CNT) / CONVERT(float, TA.TOT_CNT) * 100 ) , 2)   AS  PER_60
+		 FROM (
+				SELECT
+				        SUM( ENTER_CNT ) TOT_CNT
+				      , SUM(CASE WHEN AGE_CD = '00' THEN ENTER_CNT ELSE 0 END) AS 'C_00_CNT'
+				      , SUM(CASE WHEN AGE_CD = '10' THEN ENTER_CNT ELSE 0 END) AS 'C_10_CNT'
+				      , SUM(CASE WHEN AGE_CD = '20' THEN ENTER_CNT ELSE 0 END) AS 'C_20_CNT'
+				      , SUM(CASE WHEN AGE_CD = '30' THEN ENTER_CNT ELSE 0 END) AS 'C_30_CNT'
+				      , SUM(CASE WHEN AGE_CD = '40' THEN ENTER_CNT ELSE 0 END) AS 'C_40_CNT'
+				      , SUM(CASE WHEN AGE_CD = '50' THEN ENTER_CNT ELSE 0 END) AS 'C_50_CNT'
+				      , SUM(CASE WHEN AGE_CD = '60' THEN ENTER_CNT ELSE 0 END) AS 'C_60_CNT'
+				  FROM FCA_DAILY_STATS_CLASS
+				 WHERE 1 = 1
+				   AND SEX_CD = 'T'
+				   AND COMP_ID = #searchCompId#
+				   AND CMRA_GRP_ID = 'TT'
+				   AND STND_DATE = #nowDate#
+				   AND AGE_CD <![CDATA[<>]]>  'TT'
+				GROUP BY STND_DATE
+		) TA
+
+	</statement>
+
+
+
+
+
+	<statement id="shopstrdreportcpa.selectChart_2_1" parameterClass="java.util.Map" resultClass="egovMap">
+		 /* [] shopstrdreportcpa.selectChart_2_1 */
+		WITH H_TABLE (
+			 F_CNT_06_09
+			,M_CNT_06_09
+			,F_CNT_09_12
+			,M_CNT_09_12
+		    ,F_CNT_12_15
+		    ,M_CNT_12_15
+		    ,F_CNT_15_18
+		    ,M_CNT_15_18
+		    ,F_CNT_18_21
+		    ,M_CNT_18_21
+		    ,F_CNT_21_24
+		    ,M_CNT_21_24
+		    ,F_CNT_24_03
+		    ,M_CNT_24_03
+		    ,F_CNT_03_06
+		    ,M_CNT_03_06
+		) AS (
+				SELECT
+				         SUM(CASE WHEN ( TA.time_cd = '07' OR TA.time_cd = '08' OR TA.time_cd = '09' ) THEN TA.F_CNT ELSE 0 END) AS 'F_CNT_06_09'
+				       , SUM(CASE WHEN ( TA.time_cd = '07' OR TA.time_cd = '08' OR TA.time_cd = '09' ) THEN TA.M_CNT ELSE 0 END) AS 'M_CNT_06_09'
+				       , SUM(CASE WHEN ( TA.time_cd = '10' OR TA.time_cd = '11' OR TA.time_cd = '12' ) THEN TA.F_CNT ELSE 0 END) AS 'F_CNT_09_12'
+				       , SUM(CASE WHEN ( TA.time_cd = '10' OR TA.time_cd = '11' OR TA.time_cd = '12' ) THEN TA.M_CNT ELSE 0 END) AS 'M_CNT_09_12'
+				       , SUM(CASE WHEN ( TA.time_cd = '13' OR TA.time_cd = '14' OR TA.time_cd = '15' ) THEN TA.F_CNT ELSE 0 END) AS 'F_CNT_12_15'
+				       , SUM(CASE WHEN ( TA.time_cd = '13' OR TA.time_cd = '14' OR TA.time_cd = '15' ) THEN TA.M_CNT ELSE 0 END) AS 'M_CNT_12_15'
+				       , SUM(CASE WHEN ( TA.time_cd = '16' OR TA.time_cd = '17' OR TA.time_cd = '18' ) THEN TA.F_CNT ELSE 0 END) AS 'F_CNT_15_18'
+				       , SUM(CASE WHEN ( TA.time_cd = '16' OR TA.time_cd = '17' OR TA.time_cd = '18' ) THEN TA.M_CNT ELSE 0 END) AS 'M_CNT_15_18'
+				       , SUM(CASE WHEN ( TA.time_cd = '19' OR TA.time_cd = '20' OR TA.time_cd = '21' ) THEN TA.F_CNT ELSE 0 END) AS 'F_CNT_18_21'
+				       , SUM(CASE WHEN ( TA.time_cd = '19' OR TA.time_cd = '20' OR TA.time_cd = '21' ) THEN TA.M_CNT ELSE 0 END) AS 'M_CNT_18_21'
+				       , SUM(CASE WHEN ( TA.time_cd = '22' OR TA.time_cd = '23' OR TA.time_cd = '24' ) THEN TA.F_CNT ELSE 0 END) AS 'F_CNT_21_24'
+				       , SUM(CASE WHEN ( TA.time_cd = '22' OR TA.time_cd = '23' OR TA.time_cd = '24' ) THEN TA.M_CNT ELSE 0 END) AS 'M_CNT_21_24'
+				       , SUM(CASE WHEN ( TA.time_cd = '01' OR TA.time_cd = '02' OR TA.time_cd = '03' ) THEN TA.F_CNT ELSE 0 END) AS 'F_CNT_24_03'
+				       , SUM(CASE WHEN ( TA.time_cd = '01' OR TA.time_cd = '02' OR TA.time_cd = '03' ) THEN TA.M_CNT ELSE 0 END) AS 'M_CNT_24_03'
+				       , SUM(CASE WHEN ( TA.time_cd = '04' OR TA.time_cd = '05' OR TA.time_cd = '06' ) THEN TA.F_CNT ELSE 0 END) AS 'F_CNT_03_06'
+				       , SUM(CASE WHEN ( TA.time_cd = '04' OR TA.time_cd = '05' OR TA.time_cd = '06' ) THEN TA.M_CNT ELSE 0 END) AS 'M_CNT_03_06'
+				 FROM (
+						SELECT
+						         TIME_CD
+						       , SUM(CASE WHEN SEX_CD = 'F' THEN ENTER_CNT ELSE 0 END) AS 'F_CNT'
+						       , SUM(CASE WHEN SEX_CD = 'M' THEN ENTER_CNT ELSE 0 END) AS 'M_CNT'
+						  FROM FCA_TIMES_STATS_CLASS
+						 WHERE 1 = 1
+						   AND SEX_CD <![CDATA[<>]]>  'T'
+						   AND COMP_ID = #searchCompId#
+						   AND STND_DATE = #nowDate#
+						   AND CMRA_GRP_ID = 'TT'
+						   AND AGE_CD = 'TT'
+						 GROUP BY TIME_CD
+				) TA
+		)
+		SELECT '06시~09시' AS TIME , F_CNT_06_09 AS F_CNT,  M_CNT_06_09 AS M_CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '09시~12시' AS TIME , F_CNT_09_12 AS F_CNT,  M_CNT_09_12 AS M_CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '12시~15시' AS TIME , F_CNT_12_15 AS F_CNT,  M_CNT_12_15 AS M_CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '15시~18시' AS TIME , F_CNT_15_18 AS F_CNT,  M_CNT_15_18 AS M_CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '18시~21시' AS TIME , F_CNT_18_21 AS F_CNT,  M_CNT_18_21 AS M_CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '21시~24시' AS TIME , F_CNT_21_24 AS F_CNT,  M_CNT_21_24 AS M_CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '24시~03시' AS TIME , F_CNT_24_03 AS F_CNT,  M_CNT_24_03 AS M_CNT  FROM H_TABLE A
+		UNION  ALL
+		SELECT '03시~06시' AS TIME , F_CNT_03_06 AS F_CNT,  M_CNT_03_06 AS M_CNT  FROM H_TABLE A
+
+
+
+	</statement>
+
+	<statement id="shopstrdreportcpa.selectChart_2_1_TimeData" parameterClass="java.util.Map" resultClass="egovMap">
+	 	/* [] shopstrdreportcpa.selectChart_2_1_TimeData */
+		SELECT
+		         TIME_CD
+		       , SUM(CASE WHEN SEX_CD = 'F' THEN ENTER_CNT ELSE 0 END) AS 'F_CNT'
+		       , SUM(CASE WHEN SEX_CD = 'M' THEN ENTER_CNT ELSE 0 END) AS 'M_CNT'
+		  FROM FCA_TIMES_STATS_CLASS
+		 WHERE 1 = 1
+		   AND SEX_CD <![CDATA[<>]]>  'T'
+		   AND COMP_ID = #searchCompId#
+		   AND STND_DATE = #nowDate#
+		   AND CMRA_GRP_ID = 'TT'
+		   AND AGE_CD = 'TT'
+		 GROUP BY TIME_CD
+	</statement>
+
+
+
+	<statement id="shopstrdreportcpa.selectChart_2_2" parameterClass="java.util.Map" resultClass="egovMap">
+		 /* [] shopstrdreportcpa.selectChart_2_2 */
+		   WITH H_TABLE (
+			 C_00_CNT_06_09
+			,C_10_CNT_06_09
+			,C_20_CNT_06_09
+			,C_30_CNT_06_09
+			,C_40_CNT_06_09
+			,C_50_CNT_06_09
+			,C_60_CNT_06_09
+			,C_00_CNT_09_12
+			,C_10_CNT_09_12
+			,C_20_CNT_09_12
+			,C_30_CNT_09_12
+			,C_40_CNT_09_12
+			,C_50_CNT_09_12
+			,C_60_CNT_09_12
+			,C_00_CNT_12_15
+			,C_10_CNT_12_15
+			,C_20_CNT_12_15
+			,C_30_CNT_12_15
+			,C_40_CNT_12_15
+			,C_50_CNT_12_15
+			,C_60_CNT_12_15
+			,C_00_CNT_15_18
+			,C_10_CNT_15_18
+			,C_20_CNT_15_18
+			,C_30_CNT_15_18
+			,C_40_CNT_15_18
+			,C_50_CNT_15_18
+			,C_60_CNT_15_18
+			,C_00_CNT_18_21
+			,C_10_CNT_18_21
+			,C_20_CNT_18_21
+			,C_30_CNT_18_21
+			,C_40_CNT_18_21
+			,C_50_CNT_18_21
+			,C_60_CNT_18_21
+			,C_00_CNT_21_24
+			,C_10_CNT_21_24
+			,C_20_CNT_21_24
+			,C_30_CNT_21_24
+			,C_40_CNT_21_24
+			,C_50_CNT_21_24
+			,C_60_CNT_21_24
+			,C_00_CNT_24_03
+			,C_10_CNT_24_03
+			,C_20_CNT_24_03
+			,C_30_CNT_24_03
+			,C_40_CNT_24_03
+			,C_50_CNT_24_03
+			,C_60_CNT_24_03
+			,C_00_CNT_03_06
+			,C_10_CNT_03_06
+			,C_20_CNT_03_06
+			,C_30_CNT_03_06
+			,C_40_CNT_03_06
+			,C_50_CNT_03_06
+			,C_60_CNT_03_06
+		) AS (
+				  SELECT
+						  SUM(CASE WHEN ( TA.time_cd = '07' OR TA.time_cd = '08' OR TA.time_cd = '09' ) THEN TA.C_00_CNT ELSE 0 END) AS C_00_CNT_06_09
+						, SUM(CASE WHEN ( TA.time_cd = '07' OR TA.time_cd = '08' OR TA.time_cd = '09' ) THEN TA.C_10_CNT ELSE 0 END) AS C_10_CNT_06_09
+						, SUM(CASE WHEN ( TA.time_cd = '07' OR TA.time_cd = '08' OR TA.time_cd = '09' ) THEN TA.C_20_CNT ELSE 0 END) AS C_20_CNT_06_09
+						, SUM(CASE WHEN ( TA.time_cd = '07' OR TA.time_cd = '08' OR TA.time_cd = '09' ) THEN TA.C_30_CNT ELSE 0 END) AS C_30_CNT_06_09
+						, SUM(CASE WHEN ( TA.time_cd = '07' OR TA.time_cd = '08' OR TA.time_cd = '09' ) THEN TA.C_40_CNT ELSE 0 END) AS C_40_CNT_06_09
+						, SUM(CASE WHEN ( TA.time_cd = '07' OR TA.time_cd = '08' OR TA.time_cd = '09' ) THEN TA.C_50_CNT ELSE 0 END) AS C_50_CNT_06_09
+						, SUM(CASE WHEN ( TA.time_cd = '07' OR TA.time_cd = '08' OR TA.time_cd = '09' ) THEN TA.C_60_CNT ELSE 0 END) AS C_60_CNT_06_09
+						, SUM(CASE WHEN ( TA.time_cd = '10' OR TA.time_cd = '11' OR TA.time_cd = '12' ) THEN TA.C_00_CNT ELSE 0 END) AS C_00_CNT_09_12
+						, SUM(CASE WHEN ( TA.time_cd = '10' OR TA.time_cd = '11' OR TA.time_cd = '12' ) THEN TA.C_10_CNT ELSE 0 END) AS C_10_CNT_09_12
+						, SUM(CASE WHEN ( TA.time_cd = '10' OR TA.time_cd = '11' OR TA.time_cd = '12' ) THEN TA.C_20_CNT ELSE 0 END) AS C_20_CNT_09_12
+						, SUM(CASE WHEN ( TA.time_cd = '10' OR TA.time_cd = '11' OR TA.time_cd = '12' ) THEN TA.C_30_CNT ELSE 0 END) AS C_30_CNT_09_12
+						, SUM(CASE WHEN ( TA.time_cd = '10' OR TA.time_cd = '11' OR TA.time_cd = '12' ) THEN TA.C_40_CNT ELSE 0 END) AS C_40_CNT_09_12
+						, SUM(CASE WHEN ( TA.time_cd = '10' OR TA.time_cd = '11' OR TA.time_cd = '12' ) THEN TA.C_50_CNT ELSE 0 END) AS C_50_CNT_09_12
+						, SUM(CASE WHEN ( TA.time_cd = '10' OR TA.time_cd = '11' OR TA.time_cd = '12' ) THEN TA.C_60_CNT ELSE 0 END) AS C_60_CNT_09_12
+						, SUM(CASE WHEN ( TA.time_cd = '13' OR TA.time_cd = '14' OR TA.time_cd = '15' ) THEN TA.C_00_CNT ELSE 0 END) AS C_00_CNT_12_15
+						, SUM(CASE WHEN ( TA.time_cd = '13' OR TA.time_cd = '14' OR TA.time_cd = '15' ) THEN TA.C_10_CNT ELSE 0 END) AS C_10_CNT_12_15
+						, SUM(CASE WHEN ( TA.time_cd = '13' OR TA.time_cd = '14' OR TA.time_cd = '15' ) THEN TA.C_20_CNT ELSE 0 END) AS C_20_CNT_12_15
+						, SUM(CASE WHEN ( TA.time_cd = '13' OR TA.time_cd = '14' OR TA.time_cd = '15' ) THEN TA.C_30_CNT ELSE 0 END) AS C_30_CNT_12_15
+						, SUM(CASE WHEN ( TA.time_cd = '13' OR TA.time_cd = '14' OR TA.time_cd = '15' ) THEN TA.C_40_CNT ELSE 0 END) AS C_40_CNT_12_15
+						, SUM(CASE WHEN ( TA.time_cd = '13' OR TA.time_cd = '14' OR TA.time_cd = '15' ) THEN TA.C_50_CNT ELSE 0 END) AS C_50_CNT_12_15
+						, SUM(CASE WHEN ( TA.time_cd = '13' OR TA.time_cd = '14' OR TA.time_cd = '15' ) THEN TA.C_60_CNT ELSE 0 END) AS C_60_CNT_12_15
+						, SUM(CASE WHEN ( TA.time_cd = '16' OR TA.time_cd = '17' OR TA.time_cd = '18' ) THEN TA.C_00_CNT ELSE 0 END) AS C_00_CNT_15_18
+						, SUM(CASE WHEN ( TA.time_cd = '16' OR TA.time_cd = '17' OR TA.time_cd = '18' ) THEN TA.C_10_CNT ELSE 0 END) AS C_10_CNT_15_18
+						, SUM(CASE WHEN ( TA.time_cd = '16' OR TA.time_cd = '17' OR TA.time_cd = '18' ) THEN TA.C_20_CNT ELSE 0 END) AS C_20_CNT_15_18
+						, SUM(CASE WHEN ( TA.time_cd = '16' OR TA.time_cd = '17' OR TA.time_cd = '18' ) THEN TA.C_30_CNT ELSE 0 END) AS C_30_CNT_15_18
+						, SUM(CASE WHEN ( TA.time_cd = '16' OR TA.time_cd = '17' OR TA.time_cd = '18' ) THEN TA.C_40_CNT ELSE 0 END) AS C_40_CNT_15_18
+						, SUM(CASE WHEN ( TA.time_cd = '16' OR TA.time_cd = '17' OR TA.time_cd = '18' ) THEN TA.C_50_CNT ELSE 0 END) AS C_50_CNT_15_18
+						, SUM(CASE WHEN ( TA.time_cd = '16' OR TA.time_cd = '17' OR TA.time_cd = '18' ) THEN TA.C_60_CNT ELSE 0 END) AS C_60_CNT_15_18
+						, SUM(CASE WHEN ( TA.time_cd = '19' OR TA.time_cd = '20' OR TA.time_cd = '21' ) THEN TA.C_00_CNT ELSE 0 END) AS C_00_CNT_18_21
+						, SUM(CASE WHEN ( TA.time_cd = '19' OR TA.time_cd = '20' OR TA.time_cd = '21' ) THEN TA.C_10_CNT ELSE 0 END) AS C_10_CNT_18_21
+						, SUM(CASE WHEN ( TA.time_cd = '19' OR TA.time_cd = '20' OR TA.time_cd = '21' ) THEN TA.C_20_CNT ELSE 0 END) AS C_20_CNT_18_21
+						, SUM(CASE WHEN ( TA.time_cd = '19' OR TA.time_cd = '20' OR TA.time_cd = '21' ) THEN TA.C_30_CNT ELSE 0 END) AS C_30_CNT_18_21
+						, SUM(CASE WHEN ( TA.time_cd = '19' OR TA.time_cd = '20' OR TA.time_cd = '21' ) THEN TA.C_40_CNT ELSE 0 END) AS C_40_CNT_18_21
+						, SUM(CASE WHEN ( TA.time_cd = '19' OR TA.time_cd = '20' OR TA.time_cd = '21' ) THEN TA.C_50_CNT ELSE 0 END) AS C_50_CNT_18_21
+						, SUM(CASE WHEN ( TA.time_cd = '19' OR TA.time_cd = '20' OR TA.time_cd = '21' ) THEN TA.C_60_CNT ELSE 0 END) AS C_60_CNT_18_21
+						, SUM(CASE WHEN ( TA.time_cd = '22' OR TA.time_cd = '23' OR TA.time_cd = '24' ) THEN TA.C_00_CNT ELSE 0 END) AS C_00_CNT_21_24
+						, SUM(CASE WHEN ( TA.time_cd = '22' OR TA.time_cd = '23' OR TA.time_cd = '24' ) THEN TA.C_10_CNT ELSE 0 END) AS C_10_CNT_21_24
+						, SUM(CASE WHEN ( TA.time_cd = '22' OR TA.time_cd = '23' OR TA.time_cd = '24' ) THEN TA.C_20_CNT ELSE 0 END) AS C_20_CNT_21_24
+						, SUM(CASE WHEN ( TA.time_cd = '22' OR TA.time_cd = '23' OR TA.time_cd = '24' ) THEN TA.C_30_CNT ELSE 0 END) AS C_30_CNT_21_24
+						, SUM(CASE WHEN ( TA.time_cd = '22' OR TA.time_cd = '23' OR TA.time_cd = '24' ) THEN TA.C_40_CNT ELSE 0 END) AS C_40_CNT_21_24
+						, SUM(CASE WHEN ( TA.time_cd = '22' OR TA.time_cd = '23' OR TA.time_cd = '24' ) THEN TA.C_50_CNT ELSE 0 END) AS C_50_CNT_21_24
+						, SUM(CASE WHEN ( TA.time_cd = '22' OR TA.time_cd = '23' OR TA.time_cd = '24' ) THEN TA.C_60_CNT ELSE 0 END) AS C_60_CNT_21_24
+						, SUM(CASE WHEN ( TA.time_cd = '01' OR TA.time_cd = '02' OR TA.time_cd = '03' ) THEN TA.C_00_CNT ELSE 0 END) AS C_00_CNT_24_03
+						, SUM(CASE WHEN ( TA.time_cd = '01' OR TA.time_cd = '02' OR TA.time_cd = '03' ) THEN TA.C_10_CNT ELSE 0 END) AS C_10_CNT_24_03
+						, SUM(CASE WHEN ( TA.time_cd = '01' OR TA.time_cd = '02' OR TA.time_cd = '03' ) THEN TA.C_20_CNT ELSE 0 END) AS C_20_CNT_24_03
+						, SUM(CASE WHEN ( TA.time_cd = '01' OR TA.time_cd = '02' OR TA.time_cd = '03' ) THEN TA.C_30_CNT ELSE 0 END) AS C_30_CNT_24_03
+						, SUM(CASE WHEN ( TA.time_cd = '01' OR TA.time_cd = '02' OR TA.time_cd = '03' ) THEN TA.C_40_CNT ELSE 0 END) AS C_40_CNT_24_03
+						, SUM(CASE WHEN ( TA.time_cd = '01' OR TA.time_cd = '02' OR TA.time_cd = '03' ) THEN TA.C_50_CNT ELSE 0 END) AS C_50_CNT_24_03
+						, SUM(CASE WHEN ( TA.time_cd = '01' OR TA.time_cd = '02' OR TA.time_cd = '03' ) THEN TA.C_60_CNT ELSE 0 END) AS C_60_CNT_24_03
+						, SUM(CASE WHEN ( TA.time_cd = '04' OR TA.time_cd = '05' OR TA.time_cd = '06' ) THEN TA.C_00_CNT ELSE 0 END) AS C_00_CNT_03_06
+						, SUM(CASE WHEN ( TA.time_cd = '04' OR TA.time_cd = '05' OR TA.time_cd = '06' ) THEN TA.C_10_CNT ELSE 0 END) AS C_10_CNT_03_06
+						, SUM(CASE WHEN ( TA.time_cd = '04' OR TA.time_cd = '05' OR TA.time_cd = '06' ) THEN TA.C_20_CNT ELSE 0 END) AS C_20_CNT_03_06
+						, SUM(CASE WHEN ( TA.time_cd = '04' OR TA.time_cd = '05' OR TA.time_cd = '06' ) THEN TA.C_30_CNT ELSE 0 END) AS C_30_CNT_03_06
+						, SUM(CASE WHEN ( TA.time_cd = '04' OR TA.time_cd = '05' OR TA.time_cd = '06' ) THEN TA.C_40_CNT ELSE 0 END) AS C_40_CNT_03_06
+						, SUM(CASE WHEN ( TA.time_cd = '04' OR TA.time_cd = '05' OR TA.time_cd = '06' ) THEN TA.C_50_CNT ELSE 0 END) AS C_50_CNT_03_06
+						, SUM(CASE WHEN ( TA.time_cd = '04' OR TA.time_cd = '05' OR TA.time_cd = '06' ) THEN TA.C_60_CNT ELSE 0 END) AS C_60_CNT_03_06
+				    FROM (
+						  SELECT
+						          TIME_CD
+						        , SUM(CASE WHEN AGE_CD = '00' THEN ENTER_CNT ELSE 0 END) AS 'C_00_CNT'
+						        , SUM(CASE WHEN AGE_CD = '10' THEN ENTER_CNT ELSE 0 END) AS 'C_10_CNT'
+						        , SUM(CASE WHEN AGE_CD = '20' THEN ENTER_CNT ELSE 0 END) AS 'C_20_CNT'
+						        , SUM(CASE WHEN AGE_CD = '30' THEN ENTER_CNT ELSE 0 END) AS 'C_30_CNT'
+						        , SUM(CASE WHEN AGE_CD = '40' THEN ENTER_CNT ELSE 0 END) AS 'C_40_CNT'
+						        , SUM(CASE WHEN AGE_CD = '50' THEN ENTER_CNT ELSE 0 END) AS 'C_50_CNT'
+						        , SUM(CASE WHEN AGE_CD = '60' THEN ENTER_CNT ELSE 0 END) AS 'C_60_CNT'
+						    FROM FCA_TIMES_STATS_CLASS
+						   WHERE 1 = 1
+						     AND SEX_CD = 'T'
+						     AND COMP_ID = #searchCompId#
+						     AND STND_DATE = #nowDate#
+						     AND CMRA_GRP_ID = 'TT'
+						     AND AGE_CD <![CDATA[<>]]> 'TT'
+						GROUP BY TIME_CD
+				) TA
+		)
+		SELECT '06시~09시' AS TIME , C_00_CNT_06_09 AS C_00_CNT, C_10_CNT_06_09 AS C_10_CNT, C_20_CNT_06_09 AS C_20_CNT, C_30_CNT_06_09 AS C_30_CNT, C_40_CNT_06_09 AS C_40_CNT, C_50_CNT_06_09 AS C_50_CNT, C_60_CNT_06_09 AS C_60_CNT FROM H_TABLE A
+		UNION ALL
+		SELECT '09시~12시' AS TIME , C_00_CNT_09_12 AS C_00_CNT, C_10_CNT_09_12 AS C_10_CNT, C_20_CNT_09_12 AS C_20_CNT, C_30_CNT_09_12 AS C_30_CNT, C_40_CNT_09_12 AS C_40_CNT, C_50_CNT_09_12 AS C_50_CNT, C_60_CNT_09_12 AS C_60_CNT FROM H_TABLE A
+		UNION ALL
+		SELECT '12시~15시' AS TIME , C_00_CNT_12_15 AS C_00_CNT, C_10_CNT_12_15 AS C_10_CNT, C_20_CNT_12_15 AS C_20_CNT, C_30_CNT_12_15 AS C_30_CNT, C_40_CNT_12_15 AS C_40_CNT, C_50_CNT_12_15 AS C_50_CNT, C_60_CNT_12_15 AS C_60_CNT FROM H_TABLE A
+		UNION ALL
+		SELECT '15시~18시' AS TIME , C_00_CNT_15_18 AS C_00_CNT, C_10_CNT_15_18 AS C_10_CNT, C_20_CNT_15_18 AS C_20_CNT, C_30_CNT_15_18 AS C_30_CNT, C_40_CNT_15_18 AS C_40_CNT, C_50_CNT_15_18 AS C_50_CNT, C_60_CNT_15_18 AS C_60_CNT FROM H_TABLE A
+		UNION ALL
+		SELECT '18시~21시' AS TIME , C_00_CNT_18_21 AS C_00_CNT, C_10_CNT_18_21 AS C_10_CNT, C_20_CNT_18_21 AS C_20_CNT, C_30_CNT_18_21 AS C_30_CNT, C_40_CNT_18_21 AS C_40_CNT, C_50_CNT_18_21 AS C_50_CNT, C_60_CNT_18_21 AS C_60_CNT FROM H_TABLE A
+		UNION ALL
+		SELECT '21시~24시' AS TIME , C_00_CNT_21_24 AS C_00_CNT, C_10_CNT_21_24 AS C_10_CNT, C_20_CNT_21_24 AS C_20_CNT, C_30_CNT_21_24 AS C_30_CNT, C_40_CNT_21_24 AS C_40_CNT, C_50_CNT_21_24 AS C_50_CNT, C_60_CNT_21_24 AS C_60_CNT FROM H_TABLE A
+		UNION ALL
+		SELECT '24시~03시' AS TIME , C_00_CNT_24_03 AS C_00_CNT, C_10_CNT_24_03 AS C_10_CNT, C_20_CNT_24_03 AS C_20_CNT, C_30_CNT_24_03 AS C_30_CNT, C_40_CNT_24_03 AS C_40_CNT, C_50_CNT_24_03 AS C_50_CNT, C_60_CNT_24_03 AS C_60_CNT FROM H_TABLE A
+		UNION ALL
+		SELECT '03시~06시' AS TIME , C_00_CNT_03_06 AS C_00_CNT, C_10_CNT_03_06 AS C_10_CNT, C_20_CNT_03_06 AS C_20_CNT, C_30_CNT_03_06 AS C_30_CNT, C_40_CNT_03_06 AS C_40_CNT, C_50_CNT_03_06 AS C_50_CNT, C_60_CNT_03_06 AS C_60_CNT FROM H_TABLE A
+	</statement>
+
+	<statement id="shopstrdreportcpa.selectChart_2_2_TimeData" parameterClass="java.util.Map" resultClass="egovMap">
+	 	/* [] shopstrdreportcpa.selectChart_2_2_TimeData */
+		  SELECT
+		          TIME_CD
+		        , SUM(CASE WHEN AGE_CD = '00' THEN ENTER_CNT ELSE 0 END) AS 'C_00_CNT'
+		        , SUM(CASE WHEN AGE_CD = '10' THEN ENTER_CNT ELSE 0 END) AS 'C_10_CNT'
+		        , SUM(CASE WHEN AGE_CD = '20' THEN ENTER_CNT ELSE 0 END) AS 'C_20_CNT'
+		        , SUM(CASE WHEN AGE_CD = '30' THEN ENTER_CNT ELSE 0 END) AS 'C_30_CNT'
+		        , SUM(CASE WHEN AGE_CD = '40' THEN ENTER_CNT ELSE 0 END) AS 'C_40_CNT'
+		        , SUM(CASE WHEN AGE_CD = '50' THEN ENTER_CNT ELSE 0 END) AS 'C_50_CNT'
+		        , SUM(CASE WHEN AGE_CD = '60' THEN ENTER_CNT ELSE 0 END) AS 'C_60_CNT'
+		    FROM FCA_TIMES_STATS_CLASS
+		   WHERE 1 = 1
+		     AND SEX_CD = 'T'
+		     AND COMP_ID = #searchCompId#
+		     AND STND_DATE = #nowDate#
+		     AND CMRA_GRP_ID = 'TT'
+		     AND AGE_CD <![CDATA[<>]]> 'TT'
+		GROUP BY TIME_CD
+	</statement>
+
+
+	<statement id="shopstrdreportcpa.selectChart_3_1_1" parameterClass="java.util.Map" resultClass="egovMap" remapResults="true">
+		 /* [] shopstrdreportcpa.selectChart_3_1_1 */
+		WITH H_TABLE (
+			 STND_DATE
+			,SUM_CNT
+			,F_CNT
+			,M_CNT
+		) AS (
+				SELECT
+				        STND_DATE
+				      , SUM(ENTER_CNT) AS 'SUM_CNT'
+				      , SUM(CASE WHEN SEX_CD = 'F' THEN ENTER_CNT ELSE 0 END) AS 'F_CNT'
+				      , SUM(CASE WHEN SEX_CD = 'M' THEN ENTER_CNT ELSE 0 END) AS 'M_CNT'
+				  FROM FCA_DAILY_STATS_CLASS
+				 WHERE 1 = 1
+				   AND SEX_CD <![CDATA[<>]]> 'T'
+				   AND COMP_ID = #searchCompId#
+				   AND CMRA_GRP_ID = 'TT'
+				   AND STND_DATE in  ( #targetDay# , #nowDate# )
+				   AND AGE_CD = 'TT'
+				 GROUP BY STND_DATE
+		)
+		SELECT '전체' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.SUM_CNT ELSE 0 END) AS '$targetDay2$'  , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.SUM_CNT ELSE 0 END) AS '$nowDate2$' FROM H_TABLE TA
+		UNION ALL
+		SELECT '여자' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.F_CNT ELSE 0 END) AS '$targetDay2$'  , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.F_CNT ELSE 0 END) AS '$nowDate2$' FROM H_TABLE TA
+		UNION ALL
+		SELECT '남자' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.M_CNT ELSE 0 END) AS '$targetDay2$'  , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.M_CNT ELSE 0 END) AS '$nowDate2$' FROM H_TABLE TA
+	</statement>
+
+
+	<statement id="shopstrdreportcpa.selectChart_3_1_2" parameterClass="java.util.Map" resultClass="egovMap" remapResults="true">
+		 /* [] shopstrdreportcpa.selectChart_3_1_2 */
+		WITH H_TABLE (
+			 STND_DATE
+			,TOTCNT
+		    ,C_00_CNT
+		    ,C_10_CNT
+		    ,C_20_CNT
+		    ,C_30_CNT
+		    ,C_40_CNT
+		    ,C_50_CNT
+		    ,C_60_CNT
+		) AS (
+				SELECT TTA.STND_DATE
+				      ,TTA.C_00_CNT + TTA.C_10_CNT + TTA.C_20_CNT+ TTA.C_30_CNT+ TTA.C_40_CNT+ TTA.C_50_CNT+ TTA.C_60_CNT AS TOTCNT
+				      ,C_00_CNT
+				      ,C_10_CNT
+				      ,C_20_CNT
+				      ,C_30_CNT
+				      ,C_40_CNT
+				      ,C_50_CNT
+				      ,C_60_CNT
+				  FROM (
+						 SELECT
+						         STND_DATE
+						       , SUM(CASE WHEN AGE_CD = '00' THEN ENTER_CNT ELSE 0 END) AS 'C_00_CNT'
+						       , SUM(CASE WHEN AGE_CD = '10' THEN ENTER_CNT ELSE 0 END) AS 'C_10_CNT'
+						       , SUM(CASE WHEN AGE_CD = '20' THEN ENTER_CNT ELSE 0 END) AS 'C_20_CNT'
+						       , SUM(CASE WHEN AGE_CD = '30' THEN ENTER_CNT ELSE 0 END) AS 'C_30_CNT'
+						       , SUM(CASE WHEN AGE_CD = '40' THEN ENTER_CNT ELSE 0 END) AS 'C_40_CNT'
+						       , SUM(CASE WHEN AGE_CD = '50' THEN ENTER_CNT ELSE 0 END) AS 'C_50_CNT'
+						       , SUM(CASE WHEN AGE_CD = '60' THEN ENTER_CNT ELSE 0 END) AS 'C_60_CNT'
+						  FROM FCA_DAILY_STATS_CLASS
+						 WHERE 1 = 1
+						   AND SEX_CD = 'T'
+						   AND COMP_ID = #searchCompId#
+						   AND CMRA_GRP_ID = 'TT'
+						   AND STND_DATE in  ( #targetDay# , #nowDate# )
+						   AND AGE_CD <![CDATA[<>]]>  'TT'
+						 GROUP BY STND_DATE
+				) TTA
+		)
+		<!--
+		SELECT '전체' AS C_NM , SUM(CASE WHEN TA.STND_DATE = '$targetDay$' THEN TA.TOTCNT ELSE 0 END) AS '$targetDay$' , SUM(CASE WHEN TA.STND_DATE = '$nowDate$' THEN TA.TOTCNT ELSE 0 END) AS '$nowDate$' FROM H_TABLE TA
+		UNION ALL
+		 -->
+		SELECT '10대이하' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_00_CNT ELSE 0 END) AS '$targetDay2$' , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_00_CNT ELSE 0 END) AS '$nowDate2$' FROM H_TABLE TA
+		UNION ALL
+		SELECT '10대' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_10_CNT ELSE 0 END) AS '$targetDay2$' , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_10_CNT ELSE 0 END) AS '$nowDate2$' FROM H_TABLE TA
+		UNION ALL
+		SELECT '20대' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_20_CNT ELSE 0 END) AS '$targetDay2$' , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_20_CNT ELSE 0 END) AS '$nowDate2$' FROM H_TABLE TA
+		UNION ALL
+		SELECT '30대' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_30_CNT ELSE 0 END) AS '$targetDay2$' , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_30_CNT ELSE 0 END) AS '$nowDate2$' FROM H_TABLE TA
+		UNION ALL
+		SELECT '40대' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_40_CNT ELSE 0 END) AS '$targetDay2$' , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_40_CNT ELSE 0 END) AS '$nowDate2$' FROM H_TABLE TA
+		UNION ALL
+		SELECT '50대' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_50_CNT ELSE 0 END) AS '$targetDay2$' , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_50_CNT ELSE 0 END) AS '$nowDate2$' FROM H_TABLE TA
+		UNION ALL
+		SELECT '60대이상' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_60_CNT ELSE 0 END) AS '$targetDay2$' , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_60_CNT ELSE 0 END) AS '$nowDate2$' FROM H_TABLE TA
+
+	</statement>
+
+
+	<statement id="shopstrdreportcpa.selectChart_3_1_1_rex" parameterClass="java.util.Map" resultClass="egovMap" remapResults="true">
+		 /* [] shopstrdreportcpa.selectChart_3_1_1_rex */
+		WITH H_TABLE (
+			 STND_DATE
+			,SUM_CNT
+			,F_CNT
+			,M_CNT
+		) AS (
+				SELECT
+				        STND_DATE
+				      , SUM(ENTER_CNT) AS 'SUM_CNT'
+				      , SUM(CASE WHEN SEX_CD = 'F' THEN ENTER_CNT ELSE 0 END) AS 'F_CNT'
+				      , SUM(CASE WHEN SEX_CD = 'M' THEN ENTER_CNT ELSE 0 END) AS 'M_CNT'
+				  FROM FCA_DAILY_STATS_CLASS
+				 WHERE 1 = 1
+				   AND SEX_CD <![CDATA[<>]]> 'T'
+				   AND COMP_ID = #searchCompId#
+				   AND CMRA_GRP_ID = 'TT'
+				   AND STND_DATE in  ( #targetDay# , #nowDate# )
+				   AND AGE_CD = 'TT'
+				 GROUP BY STND_DATE
+		)
+		SELECT '전체' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.SUM_CNT ELSE 0 END) AS B_DAY  , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.SUM_CNT ELSE 0 END) AS S_DAY FROM H_TABLE TA
+		UNION ALL
+		SELECT '여자' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.F_CNT ELSE 0 END) AS B_DAY  , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.F_CNT ELSE 0 END) AS S_DAY FROM H_TABLE TA
+		UNION ALL
+		SELECT '남자' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.M_CNT ELSE 0 END) AS B_DAY  , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.M_CNT ELSE 0 END) AS S_DAY FROM H_TABLE TA
+	</statement>
+
+
+	<statement id="shopstrdreportcpa.selectChart_3_1_2_rex" parameterClass="java.util.Map" resultClass="egovMap" remapResults="true">
+		 /* [] shopstrdreportcpa.selectChart_3_1_2_rex */
+		WITH H_TABLE (
+			 STND_DATE
+			,TOTCNT
+		    ,C_00_CNT
+		    ,C_10_CNT
+		    ,C_20_CNT
+		    ,C_30_CNT
+		    ,C_40_CNT
+		    ,C_50_CNT
+		    ,C_60_CNT
+		) AS (
+				SELECT TTA.STND_DATE
+				      ,TTA.C_00_CNT + TTA.C_10_CNT + TTA.C_20_CNT+ TTA.C_30_CNT+ TTA.C_40_CNT+ TTA.C_50_CNT+ TTA.C_60_CNT AS TOTCNT
+				      ,C_00_CNT
+				      ,C_10_CNT
+				      ,C_20_CNT
+				      ,C_30_CNT
+				      ,C_40_CNT
+				      ,C_50_CNT
+				      ,C_60_CNT
+				  FROM (
+						 SELECT
+						         STND_DATE
+						       , SUM(CASE WHEN AGE_CD = '00' THEN ENTER_CNT ELSE 0 END) AS 'C_00_CNT'
+						       , SUM(CASE WHEN AGE_CD = '10' THEN ENTER_CNT ELSE 0 END) AS 'C_10_CNT'
+						       , SUM(CASE WHEN AGE_CD = '20' THEN ENTER_CNT ELSE 0 END) AS 'C_20_CNT'
+						       , SUM(CASE WHEN AGE_CD = '30' THEN ENTER_CNT ELSE 0 END) AS 'C_30_CNT'
+						       , SUM(CASE WHEN AGE_CD = '40' THEN ENTER_CNT ELSE 0 END) AS 'C_40_CNT'
+						       , SUM(CASE WHEN AGE_CD = '50' THEN ENTER_CNT ELSE 0 END) AS 'C_50_CNT'
+						       , SUM(CASE WHEN AGE_CD = '60' THEN ENTER_CNT ELSE 0 END) AS 'C_60_CNT'
+						  FROM FCA_DAILY_STATS_CLASS
+						 WHERE 1 = 1
+						   AND SEX_CD = 'T'
+						   AND COMP_ID = #searchCompId#
+						   AND CMRA_GRP_ID = 'TT'
+						   AND STND_DATE in  ( #targetDay# , #nowDate# )
+						   AND AGE_CD <![CDATA[<>]]>  'TT'
+						 GROUP BY STND_DATE
+				) TTA
+		)
+		<!--
+		SELECT '전체' AS C_NM , SUM(CASE WHEN TA.STND_DATE = '$targetDay$' THEN TA.TOTCNT ELSE 0 END) AS '$targetDay$' , SUM(CASE WHEN TA.STND_DATE = '$nowDate$' THEN TA.TOTCNT ELSE 0 END) AS '$nowDate$' FROM H_TABLE TA
+		UNION ALL
+		 -->
+		SELECT '10대이하' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_00_CNT ELSE 0 END) AS B_DAY , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_00_CNT ELSE 0 END) AS S_DAY FROM H_TABLE TA
+		UNION ALL
+		SELECT '10대' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_10_CNT ELSE 0 END) AS B_DAY , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_10_CNT ELSE 0 END) AS S_DAY FROM H_TABLE TA
+		UNION ALL
+		SELECT '20대' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_20_CNT ELSE 0 END) AS B_DAY , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_20_CNT ELSE 0 END) AS S_DAY FROM H_TABLE TA
+		UNION ALL
+		SELECT '30대' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_30_CNT ELSE 0 END) AS B_DAY , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_30_CNT ELSE 0 END) AS S_DAY FROM H_TABLE TA
+		UNION ALL
+		SELECT '40대' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_40_CNT ELSE 0 END) AS B_DAY , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_40_CNT ELSE 0 END) AS S_DAY FROM H_TABLE TA
+		UNION ALL
+		SELECT '50대' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_50_CNT ELSE 0 END) AS B_DAY , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_50_CNT ELSE 0 END) AS S_DAY FROM H_TABLE TA
+		UNION ALL
+		SELECT '60대이상' AS C_NM , SUM(CASE WHEN TA.STND_DATE = #targetDay# THEN TA.C_60_CNT ELSE 0 END) AS B_DAY , SUM(CASE WHEN TA.STND_DATE = #nowDate# THEN TA.C_60_CNT ELSE 0 END) AS S_DAY FROM H_TABLE TA
+
+	</statement>
+
+
+	<statement id="shopstrdreportcpa.selectChart_4_1" parameterClass="java.util.Map" resultClass="egovMap">
+		 /* [] shopstrdreportcpa.selectChart_4_1 */
+		SELECT
+		        TA.SHOP_ID
+		      , dbo.FN_SHOP_NM(TA.COMP_ID, TA.SHOP_ID) AS 'CMRA_GRP_NM'
+		      , TA.COMP_ID
+		      , SUM(TA.F_CNT) AS 'F_CNT'
+		      , SUM(TA.M_CNT) AS 'M_CNT'
+		      , SUM(TA.ALL_ENTER_CNT) AS 'ALL_ENTER_CNT'
+		  FROM (
+					SELECT
+					        B.SHOP_ID
+					      , B.COMP_ID
+					      ,0 AS 'F_CNT'
+					      ,0 AS 'M_CNT'
+					      , SUM(B.ENTER_CNT) AS 'ALL_ENTER_CNT'
+					 FROM FCA_TIMES_STATS_CNT AS B
+					WHERE 1 = 1
+					  AND B.COMP_ID     = #searchCompId#
+					  AND B.STND_DATE   = #nowDate#
+					  AND B.CMRA_GRP_ID <![CDATA[<>]]> 'TT'
+				    GROUP BY B.SHOP_ID , B.COMP_ID
+
+					UNION ALL
+
+					SELECT
+					        A.SHOP_ID
+					      , A.COMP_ID
+					      , SUM(CASE WHEN A.SEX_CD = 'F' THEN A.ENTER_CNT ELSE 0 END) AS 'F_CNT'
+					      , SUM(CASE WHEN A.SEX_CD = 'M' THEN A.ENTER_CNT ELSE 0 END) AS 'M_CNT'
+					      ,0 AS 'ALL_ENTER_CNT'
+					 FROM FCA_TIMES_STATS_CLASS AS A
+					WHERE 1 = 1
+					  AND A.COMP_ID     = #searchCompId#
+					  AND A.STND_DATE   = #nowDate#
+					  AND A.CMRA_GRP_ID <![CDATA[<>]]> 'TT'
+					  AND A.AGE_CD      = 'TT'
+					GROUP BY A.SHOP_ID , A.COMP_ID
+		 ) TA
+		 GROUP BY TA.SHOP_ID ,  TA.COMP_ID
+		 ORDER BY TA.SHOP_ID ,  TA.COMP_ID
+	</statement>
+
+	<statement id="shopstrdreportcpa.selectChart_4_1_rex" parameterClass="java.util.Map" resultClass="egovMap">
+		 /* [] shopstrdreportcpa.selectChart_4_1_rex */
+		SELECT TOP 15 * FROM (
+
+				SELECT
+				        TA.CMRA_GRP_ID
+				      , dbo.FN_CMRA_GRP_NM(TA.CMRA_GRP_ID, TA.COMP_ID, TA.SHOP_ID) AS 'CMRA_GRP_NM'
+				      , TA.COMP_ID
+				      , TA.SHOP_ID
+				      , SUM(TA.F_CNT) AS 'F_CNT'
+				      , SUM(TA.M_CNT) AS 'M_CNT'
+				      , SUM(TA.ALL_ENTER_CNT) AS 'ALL_ENTER_CNT'
+				  FROM (
+							SELECT
+							        B.CMRA_GRP_ID
+							      , B.COMP_ID
+							      , B.SHOP_ID
+							      ,0 AS 'F_CNT'
+							      ,0 AS 'M_CNT'
+							      , SUM(B.ENTER_CNT) AS 'ALL_ENTER_CNT'
+							 FROM FCA_TIMES_STATS_CNT AS B
+							WHERE 1 = 1
+							  AND B.COMP_ID     = #searchCompId#
+							  AND B.STND_DATE   = #nowDate#
+							  AND B.SHOP_ID     = #searchShopId#
+							  AND B.CMRA_GRP_ID <![CDATA[<>]]> 'TT'
+						    GROUP BY B.CMRA_GRP_ID , B.COMP_ID , B.SHOP_ID
+
+							UNION ALL
+
+							SELECT
+							        A.CMRA_GRP_ID
+							      , A.COMP_ID
+							      , A.SHOP_ID
+							      , SUM(CASE WHEN A.SEX_CD = 'F' THEN A.ENTER_CNT ELSE 0 END) AS 'F_CNT'
+							      , SUM(CASE WHEN A.SEX_CD = 'M' THEN A.ENTER_CNT ELSE 0 END) AS 'M_CNT'
+							      ,0 AS 'ALL_ENTER_CNT'
+							 FROM FCA_TIMES_STATS_CLASS AS A
+							WHERE 1 = 1
+							  AND A.COMP_ID     = #searchCompId#
+							  AND A.STND_DATE   = #nowDate#
+							  AND A.SHOP_ID     = #searchShopId#
+							  AND A.CMRA_GRP_ID <![CDATA[<>]]> 'TT'
+							  AND A.AGE_CD      = 'TT'
+							GROUP BY A.CMRA_GRP_ID , A.COMP_ID , A.SHOP_ID
+				 ) TA
+				 GROUP BY TA.CMRA_GRP_ID ,  TA.COMP_ID , TA.SHOP_ID
+				 <!--
+				 ORDER BY TA.CMRA_GRP_ID ,  TA.COMP_ID , TA.SHOP_ID
+				  -->
+
+
+		) TTA
+ 	    ORDER BY TTA.CMRA_GRP_ID ,  TTA.COMP_ID , TTA.SHOP_ID
+	</statement>
+
+<!--
+	<statement id="shopstrdreportcpa.selectChart_5_1" parameterClass="java.util.Map" resultClass="egovMap">
+		 /* [] shopstrdreportcpa.selectChart_5_1 */
+		SELECT
+				SUBSTRING(STND_DATE,1,4) + '-' + SUBSTRING(STND_DATE,5,2) + '-' + SUBSTRING(STND_DATE,7,2) AS STND_DATE
+		      , SUM(ENTER_CNT) AS 'SUM_CNT'
+		      , SUM(CASE WHEN SEX_CD = 'F' THEN ENTER_CNT ELSE 0 END) AS 'F_CNT'
+		      , SUM(CASE WHEN SEX_CD = 'M' THEN ENTER_CNT ELSE 0 END) AS 'M_CNT'
+		 FROM FCA_DAILY_STATS_CLASS
+		WHERE 1 = 1
+		  AND SEX_CD <![CDATA[<>]]> 'T'
+		  AND COMP_ID = #searchCompId#
+		  AND SHOP_ID = #searchShopId#
+		  AND CMRA_GRP_ID = 'TT'
+		  AND STND_DATE BETWEEN #before30Day#  AND #nowDate#
+		  AND AGE_CD = 'TT'
+		  AND STND_DATE NOT IN (  SELECT STND_DATE
+								    FROM FCA_SALES_INFO
+								   WHERE COMP_ID   = #searchCompId#
+								     AND SHOP_ID   = #searchShopId#
+								     AND STND_DATE BETWEEN #before30Day#  AND #nowDate#
+								     AND WORK_YN   = 'Y')
+		GROUP BY STND_DATE
+		ORDER BY STND_DATE
+	</statement>
+-->
+
+	<statement id="shopstrdreportcpa.selectChart_5_1" parameterClass="java.util.Map" resultClass="egovMap">
+		 /* [] shopstrdreportcpa.selectChart_5_1 */
+		SELECT
+		        SUBSTRING(STND_DATE,5,2) + '월' + SUBSTRING(STND_DATE,7,2) +'일' AS STND_DATE
+		      , SUM(TA.F_CNT) AS 'F_CNT'
+		      , SUM(TA.M_CNT) AS 'M_CNT'
+		      , SUM(TA.ALL_ENTER_CNT) AS 'SUM_CNT'
+		  FROM (
+
+					SELECT
+					        STND_DATE
+					      , 0 AS 'F_CNT'
+					      , 0 AS 'M_CNT'
+					      , SUM(B.ENTER_CNT) AS 'ALL_ENTER_CNT'
+					 FROM FCA_TIMES_STATS_CNT AS B
+					WHERE 1 = 1
+					  AND B.COMP_ID     = #searchCompId#
+					  AND B.STND_DATE   BETWEEN #before30Day#  AND #nowDate#
+					  AND B.CMRA_GRP_ID = 'TT'
+				    GROUP BY STND_DATE
+
+					UNION ALL
+
+
+					SELECT
+							STND_DATE
+					      , SUM(CASE WHEN SEX_CD = 'F' THEN ENTER_CNT ELSE 0 END) AS 'F_CNT'
+					      , SUM(CASE WHEN SEX_CD = 'M' THEN ENTER_CNT ELSE 0 END) AS 'M_CNT'
+					      , 0 AS 'ALL_ENTER_CNT'
+					 FROM FCA_DAILY_STATS_CLASS
+					WHERE 1 = 1
+					  AND SEX_CD <![CDATA[<>]]> 'T'
+					  AND COMP_ID = #searchCompId#
+					  AND CMRA_GRP_ID = 'TT'
+					  AND STND_DATE BETWEEN #before30Day#  AND #nowDate#
+					  AND AGE_CD = 'TT'
+					GROUP BY STND_DATE
+
+		 ) TA
+		 GROUP BY TA.STND_DATE
+		 ORDER BY TA.STND_DATE
+	</statement>
+
+
+	<statement id="shopstrdreportcpa.checkWorkYn" resultClass="java.lang.String">
+		/* [] shopstrdreportcpa.checkWorkYn */
+		SELECT STND_DATE
+		  FROM FCA_SALES_INFO
+         WHERE COMP_ID   = #searchCompId#
+           AND STND_DATE = #targetDay#
+           AND WORK_YN   = 'Y'
+	</statement>
+
+	<statement id="shopstrdreportcpa.selectDaySumCnt" resultClass="int">
+		/* [] shopstrdreportcpa.selectDaySumCnt */
+		<!--
+		SELECT COUNT(*) AS CNT
+		  FROM FCA_DAILY_STATS_CLASS
+		 WHERE COMP_ID = #searchCompId#
+		   AND SHOP_ID = #searchShopId#
+		   AND STND_DATE =  #targetDay#
+		-->
+		SELECT  SUM(ENTER_CNT)
+		  FROM FCA_DAILY_STATS_CLASS
+		 WHERE COMP_ID = #searchCompId#
+		   AND STND_DATE =  #targetDay#
+		   AND CMRA_GRP_ID = 'TT'
+		   AND SEX_CD = 'T'
+		   AND AGE_CD = 'TT'
+	</statement>
+
+
+</sqlMap>

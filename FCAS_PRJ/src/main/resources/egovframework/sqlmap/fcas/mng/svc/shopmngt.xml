@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="shopmngt">
+	<statement id="shopmngt.getShopList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [ShopMngtController] shopmngt.getShopList */
+		       A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY A.COMP_ID, A.SHOP_ID ) AS ROWNUM
+				     , A.COMP_ID, B.COMP_NM, A.SHOP_ID, A.SHOP_NM, dbo.FN_DATE_IN_DASH(A.SRVC_STRT_DATE) AS SRVC_STRT_DATE, dbo.FN_DATE_IN_DASH(A.SRVC_END_DATE) AS SRVC_END_DATE
+				     , A.CMRA_CNT, A.SHOP_ADDR1, A.SHOP_ADDR1_CODE, A.SHOP_ADDR2, A.BIZ_ITEM_1
+				     , A.BIZ_ITEM_2, A.BIZ_ITEM_3, A.SHOP_RMRK, A.OPEN_TM, A.CLOSE_TM, A.FILE_UID
+				     , A.REGI_ID, DBO.FN_USER_NM(A.REGI_ID) AS REGI_NM, CONVERT(VARCHAR,A.REGI_DT,120) AS REGI_DT
+				     , A.UPDT_ID, DBO.FN_USER_NM(A.UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR,A.UPDT_DT,120) AS UPDT_DT
+				     , dbo.FN_CODE_NM('biz_item_1', A.BIZ_ITEM_1) AS BIZ_ITEM_1_DESC, dbo.FN_CODE_NM('biz_item_2', A.BIZ_ITEM_2) AS BIZ_ITEM_2_DESC, dbo.FN_CODE_NM('biz_item_3', A.BIZ_ITEM_3) AS BIZ_ITEM_3_DESC
+				     , dbo.FN_DATE_IN_DASH(A.SRVC_STRT_DATE) + ' ~ ' +dbo.FN_DATE_IN_DASH(A.SRVC_END_DATE) AS SRVC_DATE
+				     , A.OPEN_TM + '시 ~ ' + A.CLOSE_TM + '시' AS OPEN_CLOSE_TM
+				     , A.USE_YN
+				  FROM FCA_SHOP AS A
+				       INNER JOIN FCA_COMP AS B ON A.COMP_ID = B.COMP_ID
+				 WHERE 1 = 1
+				   <isNotEmpty property="COMP_ID">
+				   AND A.COMP_ID = #COMP_ID#
+				   </isNotEmpty>
+				   <isNotEmpty property="SHOP_NM">
+				   AND A.SHOP_NM LIKE '%' + #SHOP_NM# + '%'
+				   </isNotEmpty>
+				) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+	<statement id="shopmngt.getShopListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		/* [ShopMngtController] shopmngt.getShopListCount */
+		SELECT COUNT(*) AS CNT
+		  FROM FCA_SHOP AS A
+			   INNER JOIN FCA_COMP AS B ON A.COMP_ID = B.COMP_ID
+		 WHERE 1 = 1
+		   <isNotEmpty property="COMP_ID">
+		   AND A.COMP_ID = #COMP_ID#
+		   </isNotEmpty>
+		   <isNotEmpty property="SHOP_NM">
+		   AND A.SHOP_NM LIKE '%' + #SHOP_NM# + '%'
+		   </isNotEmpty>
+	</statement>
+	
+	<statement id="shopmngt.getShop" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [ShopMngtController] shopmngt.getShop */
+			   A.COMP_ID, B.COMP_NM, A.SHOP_ID, A.SHOP_NM, dbo.FN_DATE_IN_DASH(A.SRVC_STRT_DATE) AS SRVC_STRT_DATE, dbo.FN_DATE_IN_DASH(A.SRVC_END_DATE) AS SRVC_END_DATE
+		     , A.CMRA_CNT, A.SHOP_ADDR1, A.SHOP_ADDR1_CODE, A.SHOP_ADDR2, A.BIZ_ITEM_1
+		     , A.BIZ_ITEM_2, A.BIZ_ITEM_3, A.SHOP_RMRK, A.OPEN_TM, A.CLOSE_TM, A.FILE_UID
+		     , A.REGI_ID, DBO.FN_USER_NM(A.REGI_ID) AS REGI_NM, CONVERT(VARCHAR,A.REGI_DT,120) AS REGI_DT
+		     , dbo.FN_USER_INFO(A.REGI_ID, A.REGI_DT) AS REGI_INFO
+		     , A.UPDT_ID, DBO.FN_USER_NM(A.UPDT_ID) AS REGI_NM, CONVERT(VARCHAR,A.UPDT_DT,120) AS UPDT_DT
+		     , dbo.FN_USER_INFO(A.UPDT_ID, A.UPDT_DT) AS UPDT_INFO
+		     , C.FILE_NM, C.FILE_SEQ
+		     , A.KWTH_ADDR_CODE, CASE WHEN KA.POINT_CODE IS NULL THEN '' ELSE '[' + A.KWTH_ADDR_CODE + '] ' + KA.LOCAL_AREA + ' ' + KA.LOCAL_CITY + ' ' + KA.LOCAL_DONG  END AS KWTH_ADDR_DESC
+		     , A.USE_YN
+		  FROM FCA_SHOP AS A
+		       INNER JOIN FCA_COMP AS B ON A.COMP_ID = B.COMP_ID
+		       LEFT OUTER JOIN fcalob.dbo.FCA_FILE_MAST AS C ON A.FILE_UID = C.FILE_UID AND 1 = C.FILE_SEQ
+		       LEFT OUTER JOIN FCA_KWTH_ADDR AS KA ON A.KWTH_ADDR_CODE = KA.POINT_CODE
+		 WHERE 1 = 1
+		   AND A.COMP_ID = #COMP_ID#
+		   AND A.SHOP_ID = #SHOP_ID#
+	</statement>
+	
+	<statement id="shopmngt.getShopListExcel" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT  /* [ShopMngtController] shopmngt.getShopListExcel */
+		       A.COMP_ID, B.COMP_NM, A.SHOP_ID, A.SHOP_NM, dbo.FN_DATE_IN_DASH(A.SRVC_STRT_DATE) AS SRVC_STRT_DATE, dbo.FN_DATE_IN_DASH(A.SRVC_END_DATE) AS SRVC_END_DATE
+		     , A.CMRA_CNT, A.SHOP_ADDR1, A.SHOP_ADDR1_CODE, A.SHOP_ADDR2
+		     , A.BIZ_ITEM_1, A.BIZ_ITEM_2, A.BIZ_ITEM_3
+		     , A.SHOP_RMRK, A.OPEN_TM, A.CLOSE_TM, A.FILE_UID
+		     , A.REGI_ID, DBO.FN_USER_NM(A.REGI_ID) AS REGI_NM, CONVERT(VARCHAR,A.REGI_DT,120) AS REGI_DT
+		     , A.UPDT_ID, DBO.FN_USER_NM(A.UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR,A.UPDT_DT,120) AS UPDT_DT
+		     , dbo.FN_CODE_NM('biz_item_1', A.BIZ_ITEM_1) AS BIZ_ITEM_1_DESC, dbo.FN_CODE_NM('biz_item_2', A.BIZ_ITEM_2) AS BIZ_ITEM_2_DESC, dbo.FN_CODE_NM('biz_item_3', A.BIZ_ITEM_3) AS BIZ_ITEM_3_DESC
+		     , dbo.FN_DATE_IN_DASH(A.SRVC_STRT_DATE) + ' ~ ' +dbo.FN_DATE_IN_DASH(A.SRVC_END_DATE) AS SRVC_DATE
+			 , A.OPEN_TM + '시 ~ ' + A.CLOSE_TM + '시' AS OPEN_CLOSE_TM
+			 , A.USE_YN		     
+		  FROM FCA_SHOP AS A
+		       INNER JOIN FCA_COMP AS B ON A.COMP_ID = B.COMP_ID
+		 WHERE 1 = 1
+		   <isNotEmpty property="COMP_ID">
+		   AND A.COMP_ID = #COMP_ID#
+		   </isNotEmpty>
+		   <isNotEmpty property="SHOP_NM">
+		   AND A.SHOP_NM LIKE '%' + #SHOP_NM# + '%'
+		   </isNotEmpty>
+	</statement>	
+
+	<statement id="shopmngt.insertShop" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT /* [ShopMngtController] shopmngt.insertShop */
+		  INTO FCA_SHOP
+		    ( COMP_ID, SHOP_ID, SHOP_NM
+		    , SRVC_STRT_DATE, SRVC_END_DATE, CMRA_CNT
+		    , SHOP_ADDR1, SHOP_ADDR1_CODE, SHOP_ADDR2
+		    , BIZ_ITEM_1, BIZ_ITEM_2, BIZ_ITEM_3
+		    , SHOP_RMRK, OPEN_TM, CLOSE_TM
+		    , FILE_UID, REGI_ID, REGI_DT
+		    , UPDT_ID, UPDT_DT, KWTH_ADDR_CODE
+		    , USE_YN
+		  ) VALUES (
+		      #COMP_ID#, #SHOP_ID#, #SHOP_NM#
+		    , REPLACE(#SRVC_STRT_DATE#,'-',''), REPLACE(#SRVC_END_DATE#,'-',''), REPLACE(#CMRA_CNT#,',','')
+		    , #SHOP_ADDR1#, #SHOP_ADDR1_CODE#, #SHOP_ADDR2#
+		    , #BIZ_ITEM_1#, #BIZ_ITEM_2#, #BIZ_ITEM_3#
+		    , #SHOP_RMRK#, #OPEN_TM#, #CLOSE_TM#
+		    , #FILE_UID#, #REGI_ID#, GETDATE()
+		    , #UPDT_ID#, GETDATE(), #KWTH_ADDR_CODE#
+		    , #USE_YN#
+		  )
+	</statement>
+
+	<statement id="shopmngt.updateShop" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [ShopMngtController] shopmngt.updateShop */
+		       FCA_SHOP
+		   SET SHOP_NM = #SHOP_NM#
+		     , SRVC_STRT_DATE = REPLACE(#SRVC_STRT_DATE#,'-','')
+		     , SRVC_END_DATE = REPLACE(#SRVC_END_DATE#,'-','')
+		     , CMRA_CNT = REPLACE(#CMRA_CNT#,',','')
+		     , SHOP_ADDR1 = #SHOP_ADDR1#
+		     , SHOP_ADDR1_CODE = #SHOP_ADDR1_CODE#
+		     , SHOP_ADDR2 = #SHOP_ADDR2#
+		     , BIZ_ITEM_1 = #BIZ_ITEM_1#
+		     , BIZ_ITEM_2 = #BIZ_ITEM_2#
+		     , BIZ_ITEM_3 = #BIZ_ITEM_3#
+		     , SHOP_RMRK = #SHOP_RMRK#
+		     , OPEN_TM = #OPEN_TM#
+		     , CLOSE_TM = #CLOSE_TM#
+		     , FILE_UID = #FILE_UID#
+		     , UPDT_ID = #UPDT_ID#
+		     , UPDT_DT = GETDATE()
+		     , KWTH_ADDR_CODE = #KWTH_ADDR_CODE#
+		     , USE_YN = #USE_YN#
+		 WHERE 1=1
+		   AND COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+	</statement>
+
+	<statement id="shopmngt.deleteShop" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [ShopMngtController] shopmngt.deleteShop */
+		  FROM FCA_SHOP
+		 WHERE COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+	</statement>
+
+	<statement id="shopmngt.selectCompLinkShopCnt" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [ShopMngtController] shopmngt.selectCompLinkShopCnt */
+			   COUNT(*)
+		  FROM FCA_SHOP
+		 WHERE COMP_ID = #COMP_ID#
+	</statement>
+	
+	<statement id="shopmngt.getShopDelValid" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT /* [ShopMngtController] shopmngt.getShopDelValid */
+			   CASE 
+		        WHEN (SELECT COUNT(*) FROM FCA_USER AS FU WHERE FU.COMP_ID = FS.COMP_ID AND FU.SHOP_ID = FS.SHOP_ID) > 0 THEN 'COM_ERR_0036' /*해당 매장에 연결되어 있는 사용자가 존재합니다.*/
+		        WHEN (SELECT COUNT(*) FROM FCA_EQIP_GRP AS FE WHERE FE.COMP_ID = FS.COMP_ID AND FE.SHOP_ID = FS.SHOP_ID) > 0 THEN 'COM_ERR_0037' /*해당 매장에 연결되어 있는 카메라가 존재합니다.*/
+		        ELSE 'Y' END AS RSLT
+		  FROM FCA_SHOP AS FS
+		 WHERE FS.COMP_ID = #COMP_ID#
+		   AND FS.SHOP_ID = #SHOP_ID#
+</statement>
+</sqlMap>
+

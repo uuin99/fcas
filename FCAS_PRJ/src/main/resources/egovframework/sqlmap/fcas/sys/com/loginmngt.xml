@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="loginmngt">
+
+	<statement id="loginmngt.selectUserCheck" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [loginController] loginmngt.selectUserCheck */
+			   USER_ID
+			 , LOGIN_ID
+			 , COMP_ID
+			 , ISNULL( (SELECT FILE_UID FROM FCA_COMP WHERE COMP_ID = A.COMP_ID ) , '' ) AS LOGO_FILE_NM
+			 , dbo.FN_COMP_NM(COMP_ID) AS COMP_NM
+			 , SHOP_ID
+			 , dbo.FN_SHOP_NM(COMP_ID, SHOP_ID) AS SHOP_NM
+			 , LOGIN_PWD
+			 , USER_NM
+			 , AUTH
+			 , (SELECT AUTH_TYPE FROM FCA_AUTH IA WHERE IA.AUTH = A.AUTH ) AS AUTH_TYPE
+			 , (SELECT COMP_DIV FROM FCA_COMP IB WHERE IB.COMP_ID = A.COMP_ID ) AS COMP_DIV
+			 , USER_TYPE
+			 , ISNULL( DEPT_NM , '' ) AS DEPT_NM
+			 , ISNULL( POSI_NM , '' ) AS POSI_NM
+			 , ISNULL( CELL_NO , '' ) AS CELL_NO
+			 , ISNULL( TEL_NO  , '' ) AS TEL_NO
+			 , ISNULL( FAX_NO  , '' ) AS FAX_NO
+			 , ISNULL( EMAIL_ID  , '' ) AS EMAIL_ID
+			 , ISNULL( EMAIL_DOMAIN , '') AS EMAIL_DOMAIN
+			 , ISNULL( LOGIN_PWD_CHNG_DATE , '') AS LOGIN_PWD_CHNG_DATE
+			 , USER_STAT
+		 FROM FCA_USER A
+		WHERE LOGIN_ID COLLATE Korean_Wansung_CS_AS = #LOGIN_ID#
+		  AND LOGIN_PWD = #ENCODE_LOGIN_PWD#
+	</statement>
+
+	<statement id="loginmngt.selectSessionDb" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+	   SELECT /* [loginController] loginmngt.selectSessionDb */
+			  SESSION_ID
+			, LOGIN_ID
+			, SERVER_IP
+			, SERVER_PORT
+		 FROM FCA_SESSION
+		WHERE LOGIN_ID COLLATE Korean_Wansung_CS_AS = #LOGIN_ID#
+	</statement>
+
+	<select id="loginmngt.selectSessionDbCount" parameterClass="java.util.Map" resultClass="int">
+		SELECT /* [loginController] loginmngt.selectSessionDbCount */
+		       COUNT(*) AS CNT
+		  FROM FCA_SESSION
+		 WHERE LOGIN_ID COLLATE Korean_Wansung_CS_AS = #LOGIN_ID#
+	</select>
+
+	<select id="loginmngt.selectSessionDbInfo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [loginController] loginmngt.selectSessionDbInfo */
+		       LOGIN_ID
+		       ,SERVER_IP
+		       ,SERVER_PORT
+		       ,SESSION_ID
+		       ,LOGIN_DT
+		       ,CONVERT(VARCHAR, LOGIN_DT , 120) AS LOGIN_DTTM
+		       ,CONVERT(VARCHAR, GETDATE() , 120) AS NOW_DTTM
+		  FROM FCA_SESSION
+		 WHERE LOGIN_ID COLLATE Korean_Wansung_CS_AS = #LOGIN_ID#
+	</select>
+
+	<statement id="loginmngt.insertSessionDb" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+
+		INSERT INTO /* [loginController] loginmngt.insertSessionDb */
+		      FCA_SESSION
+		      (LOGIN_ID
+		     , SERVER_IP
+		     , SERVER_PORT
+		     , SESSION_ID
+		     , LOGIN_DT)
+		VALUES
+		      (#LOGIN_ID#
+		     , #SERVER_IP#
+		     , #SERVER_PORT#
+		     , #SESSION_ID#
+		     , GETDATE())
+	</statement>
+
+	<statement id="loginmngt.deleteSessionDb" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [loginController] loginmngt.deleteSessionDb */
+		  FROM FCA_SESSION
+		 WHERE LOGIN_ID COLLATE Korean_Wansung_CS_AS = #LOGIN_ID#
+	</statement>
+
+	<statement id="loginmngt.getMainMenu" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [loginController] loginmngt.getMainMenu */
+		WITH MENU_CTE(MENU_ID, MENU_NM, MENU_PATH, PROG_ID, PRNT_MENU_ID, LEVL, STEP, HAS_CHILD, SORT)
+		  AS (
+		    SELECT A.MENU_ID, A.MENU_NM, A.MENU_PATH, A.PROG_ID, A.PRNT_MENU_ID, A.LEVL, A.STEP, A.HAS_CHILD
+		         , CAST(A.ORDR_SEQ AS VARCHAR(100)) AS SORT
+		      FROM FCA_MENU AS A
+		     WHERE A.USE_YN = 'Y'
+		       AND A.LEVL = 1
+		<isNotEmpty property="PRNT_MENU_ID">
+		       AND A.MENU_ID = #PRNT_MENU_ID#
+		</isNotEmpty>
+		    UNION ALL
+		    SELECT B.MENU_ID, B.MENU_NM, B.MENU_PATH, B.PROG_ID, B.PRNT_MENU_ID, B.LEVL, B.STEP, B.HAS_CHILD
+		         , CAST(C.SORT + '|' + CAST(B.STEP AS VARCHAR(10)) AS VARCHAR(100)) AS SORT
+		      FROM FCA_MENU AS B
+		     INNER JOIN MENU_CTE AS C ON B.PRNT_MENU_ID = C.MENU_ID
+		     WHERE B.USE_YN = 'Y'
+		       AND B.LEVL > 1
+		 )
+		 SELECT D.MENU_ID, D.MENU_NM, D.MENU_PATH, D.PROG_ID, D.PRNT_MENU_ID, D.LEVL, D.STEP, D.HAS_CHILD, F.TRGT_URL
+		   FROM MENU_CTE AS D
+		  INNER JOIN FCA_AUTH_MENU AS E
+		     ON D.MENU_ID = E.MENU_ID
+		   LEFT OUTER JOIN FCA_PROG AS F
+     		 ON D.PROG_ID = F.PROG_ID
+		  WHERE E.AUTH = #AUTH#
+		<isNotEmpty property="LEVL">
+		    AND D.LEVL = #LEVL#
+		</isNotEmpty>
+		 ORDER BY D.SORT
+	</statement>
+
+	<statement id="loginmngt.getNoticeData" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT * FROM (
+		SELECT ROW_NUMBER() OVER(ORDER BY A.SEQ DESC) AS ROWNUM
+		     , A.SEQ, A.SUBJ, A.CNTS, B.FILE_NM
+		     , SUBSTRING(CONVERT(VARCHAR,A.UPDT_DT,112),1,4)+'.'+SUBSTRING(CONVERT(VARCHAR,A.UPDT_DT,112),5,2)+'.'+SUBSTRING(CONVERT(VARCHAR,A.UPDT_DT,112),7,2) AS DATE
+		  FROM FCA_COMM_BRD AS A
+		  LEFT OUTER JOIN FCALOB.DBO.FCA_FILE_MAST AS B
+		    ON A.FILE_UID = B.FILE_UID AND 1 = B.FILE_SEQ
+		 WHERE A.BRD_ID = 'NOTICE_002'
+		   AND A.BRD_TYPE = 'NOTICE'
+		   AND A.NTIC_YN = 'Y'
+		   AND CONVERT(VARCHAR, GETDATE(),112) BETWEEN A.NTIC_STRT_DATE AND A.NTIC_END_DATE) AS C
+		 WHERE C.ROWNUM <![CDATA[<=]]> 5
+	</statement>
+</sqlMap>

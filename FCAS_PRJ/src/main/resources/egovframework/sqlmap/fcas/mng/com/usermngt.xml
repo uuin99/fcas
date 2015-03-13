@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="usermngt">
+
+	<typeAlias  alias="egovMap"          type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+
+	<statement id="usermngt.selectUserList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [] usermngt.selectUserList */
+		       A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY COMP_ID, SHOP_ID, USER_NM) AS ROWNUM
+				     , USER_ID
+				     , LOGIN_ID
+				     , COMP_ID
+				     , SHOP_ID
+		             , DBO.FN_COMP_NM( COMP_ID ) AS COMP_NM
+		             , DBO.FN_SHOP_NM( COMP_ID , SHOP_ID ) AS SHOP_NM
+				     , LOGIN_PWD
+				     , USER_NM
+				     , AUTH
+				     , USER_TYPE
+				     , dbo.FN_CODE_NM( 'user_type' , USER_TYPE ) AS USER_TYPE_NM
+				     , DEPT_NM
+				     , POSI_NM
+				     , CELL_NO
+				     , TEL_NO
+				     , FAX_NO
+				     , EMAIL_ID
+				     , EMAIL_DOMAIN
+		     		 , CASE WHEN EMAIL_ID = '' AND EMAIL_DOMAIN = '' THEN ''
+		       		   ELSE EMAIL_ID + '@' + EMAIL_DOMAIN
+		                END AS EMAIL_NM
+				     , USER_STAT
+				     , dbo.FN_CODE_NM( 'user_stat' , USER_STAT ) AS USER_STAT_NM
+				     , dbo.FN_DATE_IN_DASH(LOGIN_PWD_CHNG_DATE) AS LOGIN_PWD_CHNG_DATE
+				     , dbo.FN_DATE_IN_DASH(LOGIN_ID_CHNG_DATE) AS LOGIN_ID_CHNG_DATE
+				     , STOP_ID, dbo.FN_USER_NM(STOP_ID) AS STOP_NM, CONVERT(VARCHAR, STOP_DT, 120) AS STOP_DT
+				     , REGI_ID, dbo.FN_USER_NM(REGI_ID) AS REGI_NM, CONVERT(VARCHAR, REGI_DT, 120) AS REGI_DT
+				     , UPDT_ID, dbo.FN_USER_NM(UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR, UPDT_DT, 120) AS UPDT_DT
+		     		 , dbo.FN_USER_INFO(REGI_ID, REGI_DT) AS REGI_INFO
+		             , dbo.FN_USER_INFO(UPDT_ID, UPDT_DT) AS UPDT_INFO
+		             , dbo.FN_USER_INFO(STOP_ID, STOP_DT) AS STOP_INFO
+				  FROM FCA_USER
+				 WHERE 1=1
+				   <isNotEmpty property="COMP_ID">
+				   AND COMP_ID = #COMP_ID#
+				   </isNotEmpty>
+				   <isNotEmpty property="SHOP_ID">
+				   AND SHOP_ID = #SHOP_ID#
+				   </isNotEmpty>
+				   <isNotEmpty property="USER_STAT">
+				   AND USER_STAT = #USER_STAT#
+				   </isNotEmpty>
+				   <isNotEmpty property="USER_NM">
+				   AND USER_NM LIKE '%'+#USER_NM#+'%'
+				   </isNotEmpty>
+				   <isNotEmpty property="DEPT_NM">
+				   AND DEPT_NM LIKE '%'+#DEPT_NM#+'%'
+				   </isNotEmpty>
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+	<statement id="usermngt.selectUserListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [] usermngt.selectUserListCount */
+		       COUNT(*) CNT
+		  FROM FCA_USER
+		 WHERE 1=1
+		   <isNotEmpty property="COMP_ID">
+		   AND COMP_ID = #COMP_ID#
+		   </isNotEmpty>
+		   <isNotEmpty property="SHOP_ID">
+		   AND SHOP_ID = #SHOP_ID#
+		   </isNotEmpty>
+	       <isNotEmpty property="USER_STAT">
+	       AND USER_STAT = #USER_STAT#
+	       </isNotEmpty>
+	       <isNotEmpty property="USER_NM">
+	       AND USER_NM LIKE '%'+#USER_NM#+'%'
+	       </isNotEmpty>
+	       <isNotEmpty property="DEPT_NM">
+	       AND DEPT_NM LIKE '%'+#DEPT_NM#+'%'
+	       </isNotEmpty>
+	</statement>
+
+	<statement id="usermngt.selectUser" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] usermngt.selectUser */
+		SELECT ROW_NUMBER() OVER(ORDER BY COMP_ID, SHOP_ID, USER_NM) AS ROWNUM
+		     , USER_ID
+		     , LOGIN_ID
+		     , COMP_ID
+		     , SHOP_ID
+		     , DBO.FN_COMP_NM( COMP_ID ) AS COMP_NM
+		     , DBO.FN_SHOP_NM( COMP_ID , SHOP_ID ) AS SHOP_NM
+		     , LOGIN_PWD
+		     , USER_NM
+		     , AUTH
+		     , USER_TYPE
+		     , dbo.FN_CODE_NM( 'user_type' , USER_TYPE ) AS USER_TYPE_NM
+		     , DEPT_NM
+		     , POSI_NM
+		     , CELL_NO
+		     , TEL_NO
+		     , FAX_NO
+		     , EMAIL_ID
+		     , EMAIL_DOMAIN
+		     , CASE WHEN EMAIL_ID = '' AND EMAIL_DOMAIN = '' THEN ''
+		       ELSE EMAIL_ID + '@' + EMAIL_DOMAIN
+		       END AS EMAIL_NM
+		     , USER_STAT
+		     , dbo.FN_DATE_IN_DASH(LOGIN_PWD_CHNG_DATE) AS LOGIN_PWD_CHNG_DATE
+		     , dbo.FN_DATE_IN_DASH(LOGIN_ID_CHNG_DATE) AS LOGIN_ID_CHNG_DATE
+		     , dbo.FN_CODE_NM( 'user_stat' , USER_STAT ) AS USER_STAT_NM
+		     , STOP_ID, dbo.FN_USER_NM(STOP_ID) AS STOP_NM, CONVERT(VARCHAR, STOP_DT, 120) AS STOP_DT
+		     , REGI_ID, dbo.FN_USER_NM(REGI_ID) AS REGI_NM, CONVERT(VARCHAR, REGI_DT, 120) AS REGI_DT
+		     , UPDT_ID, dbo.FN_USER_NM(UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR, UPDT_DT, 120) AS UPDT_DT
+		     , dbo.FN_USER_INFO(REGI_ID, REGI_DT) AS REGI_INFO
+		     , dbo.FN_USER_INFO(UPDT_ID, UPDT_DT) AS UPDT_INFO
+		     , dbo.FN_USER_INFO(STOP_ID, STOP_DT) AS STOP_INFO
+		  FROM FCA_USER
+		 WHERE 1=1
+   		   AND USER_ID = #USER_ID#
+	</statement>
+
+
+	<statement id="usermngt.insertUser" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] usermngt.insertUser */
+		INSERT INTO FCA_USER
+		           (USER_ID
+		           ,LOGIN_ID
+		           ,LOGIN_ID_CHNG_DATE
+		           ,COMP_ID
+		           ,SHOP_ID
+		           ,LOGIN_PWD
+		           ,LOGIN_PWD_CHNG_DATE
+		           ,USER_NM
+		           ,AUTH
+		           ,USER_TYPE
+		           ,DEPT_NM
+		           ,POSI_NM
+		           ,CELL_NO
+		           ,TEL_NO
+		           ,FAX_NO
+		           ,EMAIL_ID
+		           ,EMAIL_DOMAIN
+		           ,USER_STAT
+		           ,STOP_ID
+		           ,STOP_DT
+		           ,REGI_ID
+		           ,REGI_DT
+		           ,UPDT_ID
+		           ,UPDT_DT)
+		     VALUES
+		           (#USER_ID#
+		           ,#LOGIN_ID#
+		           ,#LOGIN_ID_CHNG_DATE#
+		           ,#COMP_ID#
+		           ,#SHOP_ID#
+		           ,#LOGIN_PWD#
+		           ,#LOGIN_PWD_CHNG_DATE#
+		           ,#USER_NM#
+		           ,#AUTH#
+		           ,#USER_TYPE#
+		           ,#DEPT_NM#
+		           ,#POSI_NM#
+		           ,#CELL_NO#
+		           ,#TEL_NO#
+		           ,#FAX_NO#
+		           ,#EMAIL_ID#
+		           ,#EMAIL_DOMAIN#
+		           ,#USER_STAT#
+		           ,#STOP_ID#
+		           ,#STOP_DT#
+		           ,#REGI_ID#
+		           ,GETDATE()
+		           ,#REGI_ID#
+		           ,GETDATE())
+
+	</statement>
+
+	<statement id="usermngt.updateUser" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] usermngt.updateUser */
+		UPDATE FCA_USER
+		   SET LOGIN_ID            = #LOGIN_ID#
+			  <isEqual property="LOGIN_ID_CHNG_DATE" compareValue="Y">
+			  ,LOGIN_ID_CHNG_DATE  = CONVERT(VARCHAR(8),GETDATE(),112)
+			  </isEqual>
+		      ,COMP_ID             = #COMP_ID#
+		      ,SHOP_ID             = #SHOP_ID#
+		      ,LOGIN_PWD           = #LOGIN_PWD#
+		      <isEqual property="LOGIN_PWD_CHNG_DATE" compareValue="Y">
+		      ,LOGIN_PWD_CHNG_DATE = CONVERT(VARCHAR(8),GETDATE(),112)
+		      </isEqual>
+		      ,USER_NM             = #USER_NM#
+		      ,AUTH                = #AUTH#
+		      ,USER_TYPE           = #USER_TYPE#
+		      ,DEPT_NM             = #DEPT_NM#
+		      ,POSI_NM             = #POSI_NM#
+		      ,CELL_NO             = #CELL_NO#
+		      ,TEL_NO              = #TEL_NO#
+		      ,FAX_NO              = #FAX_NO#
+		      ,EMAIL_ID            = #EMAIL_ID#
+		      ,EMAIL_DOMAIN        = #EMAIL_DOMAIN#
+		      ,USER_STAT           = #USER_STAT#
+			  <isEqual property="STOP_DT" compareValue="Y">
+		      ,STOP_ID             = #UPDT_ID#
+		      ,STOP_DT             = GETDATE()
+			  </isEqual>
+		      ,UPDT_ID             = #UPDT_ID#
+		      ,UPDT_DT             = GETDATE()
+		 WHERE USER_ID = #USER_ID#
+	</statement>
+
+
+	<statement id="usermngt.updateUserMyInfo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] usermngt.updateUserMyInfo */
+		UPDATE FCA_USER
+		   SET LOGIN_ID            = #LOGIN_ID#
+			  <isEqual property="LOGIN_ID_CHNG_DATE" compareValue="Y">
+			  ,LOGIN_ID_CHNG_DATE  = CONVERT(VARCHAR(8),GETDATE(),112)
+			  </isEqual>
+		      ,LOGIN_PWD           = #LOGIN_PWD#
+			  <isEqual property="LOGIN_PWD_CHNG_DATE" compareValue="Y">
+			  ,LOGIN_PWD_CHNG_DATE  = CONVERT(VARCHAR(8),GETDATE(),112)
+			  </isEqual>
+			  ,USER_NM             = #USER_NM#
+		      ,DEPT_NM             = #DEPT_NM#
+		      ,POSI_NM             = #POSI_NM#
+		      ,CELL_NO             = #CELL_NO#
+		      ,TEL_NO              = #TEL_NO#
+		      ,FAX_NO              = #FAX_NO#
+		      ,EMAIL_ID            = #EMAIL_ID#
+		      ,EMAIL_DOMAIN        = #EMAIL_DOMAIN#
+		      ,UPDT_ID             = #UPDT_ID#
+		      ,UPDT_DT             = GETDATE()
+		 WHERE USER_ID = #USER_ID#
+	</statement>
+
+	<statement id="usermngt.deleteUser" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [] usermngt.deleteUser */
+		  FROM FCA_USER
+		 WHERE USER_ID = #USER_ID#
+	</statement>
+
+	<statement id="usermngt.selectCheckLoginId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [] usermngt.selectCheckLoginId */
+			   COUNT(*) AS CNT
+		  FROM FCA_USER
+		 WHERE 1 = 1
+		   AND LOGIN_ID = #LOGIN_ID#
+	</statement>
+
+	<statement id="usermngt.selectLoginId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [] usermngt.selectLoginId */
+			   COUNT(*) AS CNT
+		  FROM FCA_USER
+		 WHERE 1 = 1
+		  AND login_ID <![CDATA[<>]]> #SESSION_LOGIN_ID#
+		  AND login_ID = #LOGIN_ID#
+	</statement>
+
+	<statement id="usermngt.selectSalesMnge" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [] usermngt.selectSalesMnge */
+			   USER_NM, USER_ID
+		  FROM FCA_USER
+		 WHERE 1 = 1
+		   AND AUTH = '영업담당자'
+		   <isNotEmpty property="USER_STAT">
+		   AND USER_STAT = #USER_STAT#
+		   </isNotEmpty>
+		 ORDER BY USER_NM
+	</statement>
+
+
+	<statement id="usermngt.selectCheckAuth" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] usermngt.selectCheckAuth */
+		SELECT COMP_DIV
+		     , AUTH_TYPE
+		  FROM (
+			SELECT ISNULL( A.COMP_DIV  , '' ) AS COMP_DIV
+			  FROM FCA_COMP A
+			 WHERE A.COMP_ID = #COMP_ID#
+		) AA ,
+		(
+			SELECT ISNULL( B.AUTH_TYPE , '' ) AS AUTH_TYPE
+			  FROM FCA_AUTH B
+		     WHERE B.AUTH = #AUTH#
+		) BB
+	</statement>
+
+	<statement id="usermngt.selectRxTestList" parameterClass="java.util.Map" resultClass="egovMap">
+
+SELECT * FROM (
+	SELECT
+				      COMP_ID
+				      ,SHOP_ID
+		             , DBO.FN_COMP_NM( COMP_ID ) AS COMP_NM
+		             , DBO.FN_SHOP_NM( COMP_ID , SHOP_ID ) AS SHOP_NM
+		             , COUNT(LOGIN_ID) AS LOGIN_ID_COUNT1
+		             , COUNT(LOGIN_ID)*10 AS LOGIN_ID_COUNT2
+		             , COUNT(LOGIN_ID)+1 AS LOGIN_ID_COUNT3
+				  FROM FCA_USER
+				 WHERE 1=1
+				 GROUP BY COMP_ID , SHOP_ID  ,DBO.FN_COMP_NM( COMP_ID ) , DBO.FN_SHOP_NM( COMP_ID , SHOP_ID )
+UNION ALL
+	SELECT
+				      COMP_ID
+				      ,SHOP_ID
+		             , DBO.FN_COMP_NM( COMP_ID ) AS COMP_NM
+		             , DBO.FN_SHOP_NM( COMP_ID , SHOP_ID ) AS SHOP_NM
+		             , COUNT(LOGIN_ID) AS LOGIN_ID_COUNT1
+		             , COUNT(LOGIN_ID)*20 AS LOGIN_ID_COUNT2
+		             , COUNT(LOGIN_ID)+2 AS LOGIN_ID_COUNT3
+				  FROM FCA_USER
+				 WHERE 1=1
+				 GROUP BY COMP_ID , SHOP_ID  ,DBO.FN_COMP_NM( COMP_ID ) , DBO.FN_SHOP_NM( COMP_ID , SHOP_ID )
+)AS  TA
+ORDER BY TA.COMP_ID , TA.SHOP_ID
+
+	</statement>
+
+
+	<statement id="usermngt.selectRxTestList2" parameterClass="java.util.Map" resultClass="egovMap">
+select * from fca_msg
+
+	</statement>
+
+</sqlMap>

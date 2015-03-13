@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<gubun>
+	<rpt1>
+<rexdataset>
+  <rexrow>
+    <dovCd>1</dovCd>
+    <dovNm>일</dovNm>
+    <enterCnt>43822</enterCnt>
+    <buyCsCnt>7446</buyCsCnt>
+    <salesAmt>162</salesAmt>
+  </rexrow>
+  <rexrow>
+    <dovCd>2</dovCd>
+    <dovNm>월</dovNm>
+    <enterCnt>43512</enterCnt>
+    <buyCsCnt>10418</buyCsCnt>
+    <salesAmt>152</salesAmt>
+  </rexrow>
+  <rexrow>
+    <dovCd>3</dovCd>
+    <dovNm>화</dovNm>
+    <enterCnt>43174</enterCnt>
+    <buyCsCnt>6370</buyCsCnt>
+    <salesAmt>77</salesAmt>
+  </rexrow>
+  <rexrow>
+    <dovCd>4</dovCd>
+    <dovNm>수</dovNm>
+    <enterCnt>43469</enterCnt>
+    <buyCsCnt>7155</buyCsCnt>
+    <salesAmt>77</salesAmt>
+  </rexrow>
+  <rexrow>
+    <dovCd>5</dovCd>
+    <dovNm>목</dovNm>
+    <enterCnt>42999</enterCnt>
+    <buyCsCnt>5973</buyCsCnt>
+    <salesAmt>76</salesAmt>
+  </rexrow>
+  <rexrow>
+    <dovCd>6</dovCd>
+    <dovNm>금</dovNm>
+    <enterCnt>43917</enterCnt>
+    <buyCsCnt>13195</buyCsCnt>
+    <salesAmt>142</salesAmt>
+  </rexrow>
+  <rexrow>
+    <dovCd>7</dovCd>
+    <dovNm>토</dovNm>
+    <enterCnt>43611</enterCnt>
+    <buyCsCnt>10006</buyCsCnt>
+    <salesAmt>164</salesAmt>
+  </rexrow>
+</rexdataset>
+	</rpt1>
+</gubun>

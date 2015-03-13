@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+	<!-- hsql  -->
+ 	<!-- <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="net.sf.log4jdbc.DriverSpy"/>
+		<property name="url" value="jdbc:log4jdbc:hsqldb:hsql://localhost/sampledb"/>
+		<property name="username" value="sa"/>
+	</bean> -->
+
+	<!-- mssql
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
+        <property name="url" value="jdbc:sqlserver://174.200.1.128:1433;DatabaseName=fcatbs"/>
+        <property name="username" value="fca"/>
+        <property name="password" value="fca"/>
+    </bean>
+    -->
+	<!-- mssql spy 운영
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="net.sf.log4jdbc.DriverSpy"/>
+        <property name="url" value="jdbc:log4jdbc:sqlserver://110.45.190.179:1022;DatabaseName=fcatbs"/>
+        <property name="username" value="fca"/>
+        <property name="password" value="fca"/>
+    </bean>
+	-->
+	<!-- mssql spy 개발
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="net.sf.log4jdbc.DriverSpy"/>
+        <property name="url" value="jdbc:log4jdbc:sqlserver://174.200.1.128:1433;DatabaseName=fcatbs"/>
+        <property name="username" value="fca"/>
+        <property name="password" value="fca"/>
+    </bean>
+    -->
+	<!-- 로컬 spy 개발 -->
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="net.sf.log4jdbc.DriverSpy"/>
+        <property name="url" value="jdbc:log4jdbc:sqlserver://127.0.0.1:1433;DatabaseName=fcatbs"/>
+        <property name="username" value="fca"/>
+        <property name="password" value="fca"/>
+    </bean>
+
+</beans>

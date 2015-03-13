@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="shopevntmngt">
+	<statement id="shopevntmngt.getShopEvnt" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [ShopEvntMngtController] shopevntmngt.getShopEvnt */
+		       A.*
+		  FROM (
+		SELECT ROW_NUMBER() OVER(ORDER BY A.COMP_ID, A.SHOP_ID, A.EVNT_NO) AS ROWNUM
+		     , A.COMP_ID, A.SHOP_ID, A.EVNT_NO, A.EVNT_NM, A.EVNT_STRT_DATE, A.EVNT_END_DATE, A.EVNT_RMRK
+		     , A.REGI_ID, dbo.FN_USER_NM(A.REGI_ID) AS REGI_NM, CONVERT(VARCHAR, A.REGI_DT, 120) AS REGI_DT
+		     , A.UPDT_ID, dbo.FN_USER_NM(A.UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR, A.UPDT_DT, 120) AS UPDT_DT
+		  FROM FCA_SHOP_EVNT AS A
+		 INNER JOIN FCA_SHOP AS B
+		    ON A.COMP_ID = B.COMP_ID
+		   AND A.SHOP_ID = B.SHOP_ID
+		 WHERE A.COMP_ID = #COMP_ID#
+		   <isNotEmpty property="SHOP_ID">
+		   AND A.SHOP_ID = #SHOP_ID#
+		   </isNotEmpty>
+		   <isNotEmpty property="SHOP_NM">
+		   AND B.SHOP_NM LIKE '%'+#SHOP_NM#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="EVNT_DT_START">
+		   AND A.EVNT_STRT_DATE <![CDATA[>=]]> #EVNT_DT_START#
+		   </isNotEmpty>
+		   <isNotEmpty property="EVNT_DT_END">
+		   AND A.EVNT_END_DATE <![CDATA[<=]]> #EVNT_DT_END#
+		   </isNotEmpty>
+		   <isNotEmpty property="EVNT_NM">
+		   AND A.EVNT_NM LIKE '%'+#EVNT_NM#+'%'
+		   </isNotEmpty>
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+	
+	<statement id="shopevntmngt.getShopEvntCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [ShopEvntMngtController] shopevntmngt.getShopEvntCount */
+		       COUNT(*) CNT
+		  FROM FCA_SHOP_EVNT AS A
+		 INNER JOIN FCA_SHOP AS B
+		    ON A.COMP_ID = B.COMP_ID
+		   AND A.SHOP_ID = B.SHOP_ID
+		 WHERE A.COMP_ID = #COMP_ID#
+		   <isNotEmpty property="SHOP_ID">
+		   AND A.SHOP_ID = #SHOP_ID#
+		   </isNotEmpty>
+		   <isNotEmpty property="CHK_EVNT_NO">
+		   AND A.EVNT_NO != #CHK_EVNT_NO#
+		   </isNotEmpty>
+		   <isNotEmpty property="CHK_DATE_START">
+		   AND (
+		        (#CHK_DATE_START# BETWEEN A.EVNT_STRT_DATE AND A.EVNT_END_DATE AND #CHK_DATE_END# BETWEEN A.EVNT_STRT_DATE AND A.EVNT_END_DATE)
+		     OR (#CHK_DATE_START# <![CDATA[<=]]> A.EVNT_STRT_DATE AND #CHK_DATE_END# BETWEEN A.EVNT_STRT_DATE AND A.EVNT_END_DATE)
+		     OR (#CHK_DATE_START# BETWEEN A.EVNT_STRT_DATE AND A.EVNT_END_DATE AND #CHK_DATE_END# <![CDATA[>=]]> A.EVNT_END_DATE)
+		     OR (#CHK_DATE_START# <![CDATA[<=]]> A.EVNT_STRT_DATE AND #CHK_DATE_END# <![CDATA[>=]]> A.EVNT_END_DATE)
+		       )
+		   </isNotEmpty>
+	</statement>
+	
+	<statement id="shopevntmngt.insertShopEvnt" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT INTO /* [ShopEvntMngtController] shopevntmngt.insertShopEvnt */
+		      FCA_SHOP_EVNT
+		      (COMP_ID, SHOP_ID, EVNT_NO
+		     , EVNT_NM, EVNT_STRT_DATE, EVNT_END_DATE, EVNT_RMRK
+		     , REGI_ID, REGI_DT, UPDT_ID, UPDT_DT)
+		VALUES
+		      (dbo.FN_NULL(#COMP_ID#), dbo.FN_NULL(#SHOP_ID#), dbo.FN_NULL(#EVNT_NO#)
+		     , #EVNT_NM#, REPLACE(SUBSTRING(#EVNT_STRT_DATE#,0,11),'-',''), REPLACE(SUBSTRING(#EVNT_END_DATE#,0,11),'-',''), #EVNT_RMRK#
+		     , #USER_ID#, GETDATE(), #USER_ID#, GETDATE())
+	</statement>
+	
+	<statement id="shopevntmngt.updateShopEvnt" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [ShopEvntMngtController] shopevntmngt.updateShopEvnt */
+		       FCA_SHOP_EVNT
+		   SET EVNT_NM        = #EVNT_NM#
+		     , EVNT_STRT_DATE = REPLACE(SUBSTRING(#EVNT_STRT_DATE#,0,11),'-','')
+		     , EVNT_END_DATE  = REPLACE(SUBSTRING(#EVNT_END_DATE#,0,11),'-','')
+		     , EVNT_RMRK      = #EVNT_RMRK#
+		     , UPDT_ID        = #USER_ID#
+		     , UPDT_DT        = GETDATE()
+		 WHERE COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+		   AND EVNT_NO = #EVNT_NO#
+	</statement>
+	
+	<statement id="shopevntmngt.deleteShopEvnt" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [ShopEvntMngtController] shopevntmngt.deleteShopEvnt */
+		  FROM FCA_SHOP_EVNT
+		 WHERE COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+		   AND EVNT_NO = #EVNT_NO#
+	</statement>
+</sqlMap>

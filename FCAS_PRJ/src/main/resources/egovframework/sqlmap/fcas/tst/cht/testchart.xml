@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="testchart">
+	<statement id="testchart.getDailyStatsCnt" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [TestChartController] testchart.getDailyStatsCnt */
+		       STND_DATE, DOV_CD, STND_YYMM
+		     , SUM(ENTER_CNT) AS ENTER_CNT
+		     , SUM(EXIT_CNT) AS EXIT_CNT
+		     , SUM(TOTAL_CNT) AS TOTAL_CNT
+		     , SUM(STAY_CNT) AS STAY_CNT
+		  FROM FCA_DAILY_STATS_CNT
+		 WHERE COMP_ID = #COMP_ID#
+		<isNotEmpty property="SHOP_ID">
+		   AND SHOP_ID = #SHOP_ID#
+		</isNotEmpty>
+		<isNotEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID IN ($CMRA_GRP_ID$)
+		</isNotEmpty>
+		<isEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID = 'TT'
+		</isEmpty>
+		<isNotEmpty property="STND_DATE">
+		   AND STND_DATE = #STND_DATE#
+		</isNotEmpty>
+		<isEmpty property="STND_DATE">
+		   AND STND_DATE BETWEEN #STND_DATE_F# AND #STND_DATE_T#
+		</isEmpty>
+		 GROUP BY STND_DATE, DOV_CD, STND_YYMM
+	</statement>
+	
+	<statement id="testchart.getTimesStatsCnt" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [TestChartController] testchart.getTimesStatsCnt */
+		       TIME_CD, TIME_GRP, STND_YYMM
+		     , dbo.FN_CODE_NM('time_cd',TIME_CD) AS TIME_NM
+		     , SUM(ENTER_CNT) AS ENTER_CNT
+		     , SUM(EXIT_CNT) AS EXIT_CNT
+		     , SUM(TOTAL_CNT) AS TOTAL_CNT
+		     , SUM(STAY_CNT) AS STAY_CNT
+		  FROM FCA_TIMES_STATS_CNT
+		 WHERE COMP_ID = #COMP_ID#
+		<isNotEmpty property="SHOP_ID">
+		   AND SHOP_ID = #SHOP_ID#
+		</isNotEmpty>
+		<isNotEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID IN ($CMRA_GRP_ID$)
+		</isNotEmpty>
+		<isEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID = 'TT'
+		</isEmpty>
+		<isNotEmpty property="STND_DATE">
+		   AND STND_DATE = #STND_DATE#
+		</isNotEmpty>
+		<isEmpty property="STND_DATE">
+		   AND STND_DATE BETWEEN #STND_DATE_F# AND #STND_DATE_T#
+		</isEmpty>
+		 GROUP BY TIME_CD, TIME_GRP, STND_YYMM
+	</statement>
+	
+	<statement id="testchart.getDailyStatsCntDov" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [TestChartController] testchart.getDailyStatsCntDov */
+		       DOV_CD
+		     , dbo.FN_CODE_NM('dov_cd',DOV_CD) AS DOV_NM
+		     , SUM(ENTER_CNT) AS ENTER_CNT
+		     , SUM(EXIT_CNT) AS EXIT_CNT
+		     , SUM(TOTAL_CNT) AS TOTAL_CNT
+		     , SUM(STAY_CNT) AS STAY_CNT
+		  FROM FCA_DAILY_STATS_CNT
+		 WHERE COMP_ID = #COMP_ID#
+		<isNotEmpty property="SHOP_ID">
+		   AND SHOP_ID = #SHOP_ID#
+		</isNotEmpty>
+		<isNotEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID IN ($CMRA_GRP_ID$)
+		</isNotEmpty>
+		<isEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID = 'TT'
+		</isEmpty>
+		<isNotEmpty property="STND_DATE">
+		   AND STND_DATE = #STND_DATE#
+		</isNotEmpty>
+		<isEmpty property="STND_DATE">
+		   AND STND_DATE BETWEEN #STND_DATE_F# AND #STND_DATE_T#
+		</isEmpty>
+		 GROUP BY DOV_CD
+	</statement>
+	
+	<statement id="testchart.getDailyStatsClassA1" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [TestChartController] testchart.getDailyStatsClassA1 */
+		       AGE_CD
+		     , dbo.FN_CODE_NM('age_cd',AGE_CD) AS AGE_NM
+		     , SUM(CASE WHEN SEX_CD='T' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_T
+		     , SUM(CASE WHEN SEX_CD='M' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_M
+		     , SUM(CASE WHEN SEX_CD='F' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_F
+		  FROM FCA_DAILY_STATS_CLASS
+		 WHERE COMP_ID = #COMP_ID#
+		<isNotEmpty property="SHOP_ID">
+		   AND SHOP_ID = #SHOP_ID#
+		</isNotEmpty>
+		<isNotEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID IN ($CMRA_GRP_ID$)
+		</isNotEmpty>
+		<isEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID = 'TT'
+		</isEmpty>
+		<isNotEmpty property="STND_DATE">
+		   AND STND_DATE = #STND_DATE#
+		</isNotEmpty>
+		<isEmpty property="STND_DATE">
+		   AND STND_DATE BETWEEN #STND_DATE_F# AND #STND_DATE_T#
+		</isEmpty>
+		   AND AGE_CD != 'TT'
+		<isNotEmpty property="AGE_CD">
+		   AND AGE_CD = #AGE_CD#
+		</isNotEmpty>
+		 GROUP BY AGE_CD
+	</statement>
+	
+	<statement id="testchart.getDailyStatsClassA2" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [TestChartController] testchart.getDailyStatsClassA2 */
+		       AGE_CD
+		     , dbo.FN_CODE_NM('age_cd',AGE_CD) AS AGE_NM
+		     , SUM(CASE WHEN DOV_CD='1' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_1
+		     , SUM(CASE WHEN DOV_CD='2' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_2
+		     , SUM(CASE WHEN DOV_CD='3' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_3
+		     , SUM(CASE WHEN DOV_CD='4' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_4
+		     , SUM(CASE WHEN DOV_CD='5' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_5
+		     , SUM(CASE WHEN DOV_CD='6' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_6
+		     , SUM(CASE WHEN DOV_CD='7' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_7
+		  FROM FCA_DAILY_STATS_CLASS
+		 WHERE COMP_ID = #COMP_ID#
+		<isNotEmpty property="SHOP_ID">
+		   AND SHOP_ID = #SHOP_ID#
+		</isNotEmpty>
+		<isNotEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID IN ($CMRA_GRP_ID$)
+		</isNotEmpty>
+		<isEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID = 'TT'
+		</isEmpty>
+		<isNotEmpty property="STND_DATE">
+		   AND STND_DATE = #STND_DATE#
+		</isNotEmpty>
+		<isEmpty property="STND_DATE">
+		   AND STND_DATE BETWEEN #STND_DATE_F# AND #STND_DATE_T#
+		</isEmpty>
+		   AND AGE_CD != 'TT'
+		 GROUP BY AGE_CD
+	</statement>
+	
+	<statement id="testchart.getTimesStatsClassA1" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [TestChartController] testchart.getTimesStatsClassA1 */
+		       TIME_CD
+		     , dbo.FN_CODE_NM('time_cd',TIME_CD) AS TIME_NM
+		     , SUM(CASE WHEN SEX_CD='T' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_T
+		     , SUM(CASE WHEN SEX_CD='M' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_M
+		     , SUM(CASE WHEN SEX_CD='F' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_F
+		  FROM FCA_TIMES_STATS_CLASS
+		 WHERE COMP_ID = #COMP_ID#
+		<isNotEmpty property="SHOP_ID">
+		   AND SHOP_ID = #SHOP_ID#
+		</isNotEmpty>
+		<isNotEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID IN ($CMRA_GRP_ID$)
+		</isNotEmpty>
+		<isEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID = 'TT'
+		</isEmpty>
+		<isNotEmpty property="STND_DATE">
+		   AND STND_DATE = #STND_DATE#
+		</isNotEmpty>
+		<isEmpty property="STND_DATE">
+		   AND STND_DATE BETWEEN #STND_DATE_F# AND #STND_DATE_T#
+		</isEmpty>
+		 GROUP BY TIME_CD
+	</statement>
+	
+	<statement id="testchart.getTimesStatsClassA2" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [TestChartController] testchart.getTimesStatsClassA1 */
+		       TIME_CD
+		     , dbo.FN_CODE_NM('time_cd',TIME_CD) AS TIME_NM
+		     , SUM(CASE WHEN AGE_CD='TT' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_TT
+		     , SUM(CASE WHEN AGE_CD='00' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_00
+		     , SUM(CASE WHEN AGE_CD='10' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_10
+		     , SUM(CASE WHEN AGE_CD='20' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_20
+		     , SUM(CASE WHEN AGE_CD='30' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_30
+		     , SUM(CASE WHEN AGE_CD='40' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_40
+		     , SUM(CASE WHEN AGE_CD='50' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_50
+		     , SUM(CASE WHEN AGE_CD='60' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_60
+		  FROM FCA_TIMES_STATS_CLASS
+		 WHERE COMP_ID = #COMP_ID#
+		<isNotEmpty property="SHOP_ID">
+		   AND SHOP_ID = #SHOP_ID#
+		</isNotEmpty>
+		<isNotEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID IN ($CMRA_GRP_ID$)
+		</isNotEmpty>
+		<isEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID = 'TT'
+		</isEmpty>
+		<isNotEmpty property="STND_DATE">
+		   AND STND_DATE = #STND_DATE#
+		</isNotEmpty>
+		<isEmpty property="STND_DATE">
+		   AND STND_DATE BETWEEN #STND_DATE_F# AND #STND_DATE_T#
+		</isEmpty>
+		 GROUP BY TIME_CD
+	</statement>
+	
+	<statement id="testchart.getDailyStatsClassA3" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [TestChartController] testchart.getDailyStatsClassA3 */
+		       SEX_CD
+		     , dbo.FN_CODE_NM('sex_cd',SEX_CD) AS SEX_NM
+		     , SUM(CASE WHEN AGE_CD='TT' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_TT
+		     , SUM(CASE WHEN AGE_CD='00' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_00
+		     , SUM(CASE WHEN AGE_CD='10' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_10
+		     , SUM(CASE WHEN AGE_CD='20' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_20
+		     , SUM(CASE WHEN AGE_CD='30' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_30
+		     , SUM(CASE WHEN AGE_CD='40' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_40
+		     , SUM(CASE WHEN AGE_CD='50' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_50
+		     , SUM(CASE WHEN AGE_CD='60' THEN ENTER_CNT ELSE 0 END) AS ENTER_CNT_60
+		  FROM FCA_DAILY_STATS_CLASS
+		 WHERE COMP_ID = #COMP_ID#
+		<isNotEmpty property="SHOP_ID">
+		   AND SHOP_ID = #SHOP_ID#
+		</isNotEmpty>
+		<isNotEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID IN ($CMRA_GRP_ID$)
+		</isNotEmpty>
+		<isEmpty property="CMRA_GRP_ID">
+		   AND CMRA_GRP_ID = 'TT'
+		</isEmpty>
+		<isNotEmpty property="STND_DATE">
+		   AND STND_DATE = #STND_DATE#
+		</isNotEmpty>
+		<isEmpty property="STND_DATE">
+		   AND STND_DATE BETWEEN #STND_DATE_F# AND #STND_DATE_T#
+		</isEmpty>
+		   AND SEX_CD != 'T'
+		<isNotEmpty property="SEX_CD">
+		   AND SEX_CD = #SEX_CD#
+		</isNotEmpty>
+		 GROUP BY SEX_CD
+	</statement>
+</sqlMap>

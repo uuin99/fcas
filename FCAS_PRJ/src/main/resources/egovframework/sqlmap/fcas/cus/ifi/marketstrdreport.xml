@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="marketstrdreport">
+
+	<statement id="marketstrdreport.selectShopInfo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] marketstrdreport.selectShopInfo */
+		SELECT SHOP_ADDR1_CODE
+			 , BIZ_ITEM_1
+			 , BIZ_ITEM_2
+		     , BIZ_ITEM_3
+		  FROM FCA_SHOP
+		 WHERE COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+	</statement>
+
+
+	<statement id="marketstrdreport.selectDailyCntList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [] marketstrdreport.selectDailyCntList */
+		       A.*
+		  FROM (
+
+					SELECT ROW_NUMBER() OVER(ORDER BY COMP_ID , SHOP_ID , CMRA_GRP_ID , STND_DATE , DOV_CD DESC) AS ROWNUM
+						  ,COMP_ID
+						  ,DBO.FN_COMP_NM(COMP_ID) AS COMP_NM
+					      ,SHOP_ID
+					      ,DBO.FN_SHOP_NM(COMP_ID, SHOP_ID) AS SHOP_NM
+					      ,CMRA_GRP_ID
+					      ,( SELECT K.CMRA_GRP_NM FROM FCA_EQIP_GRP K WHERE K.CMRA_GRP_ID = A.CMRA_GRP_ID ) AS CMRA_GRP_NM
+					      ,STND_DATE
+					      ,DOV_CD
+					      ,DBO.FN_CODE_NM('dov_cd' , DOV_CD ) AS DOV_CD_NM
+					      ,STND_YYMM
+					      ,ENTER_CNT
+					      ,EXIT_CNT
+					      ,TOTAL_CNT
+					      ,STAY_CNT
+					      ,CONVERT(VARCHAR, WORK_DT, 120) AS WORK_DT
+					  FROM FCA_DAILY_STATS_CNT A
+					 WHERE 1=1
+				       <isNotEmpty property="COMP_ID">
+				       AND COMP_ID = #COMP_ID#
+				       </isNotEmpty>
+				       <isNotEmpty property="SHOP_ID">
+				       AND SHOP_ID = #SHOP_ID#
+				       </isNotEmpty>
+                       <isNotEmpty property="STND_DATE_F" >
+                       AND STND_DATE     >= #STND_DATE_F#
+                       </isNotEmpty>
+                       <isNotEmpty property="STND_DATE_T" >
+                       AND STND_DATE     <![CDATA[<=]]> #STND_DATE_T#
+                       </isNotEmpty>
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+
+	<statement id="marketstrdreport.selectDailyCntListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+					/* [] marketstrdreport.selectDailyCntListCount */
+					SELECT COUNT(*) AS CNT
+					  FROM FCA_DAILY_STATS_CNT A
+					 WHERE 1=1
+				       <isNotEmpty property="COMP_ID">
+				       AND COMP_ID = #COMP_ID#
+				       </isNotEmpty>
+				       <isNotEmpty property="SHOP_ID">
+				       AND SHOP_ID = #SHOP_ID#
+				       </isNotEmpty>
+                       <isNotEmpty property="STND_DATE_F" >
+                       AND STND_DATE     >= #STND_DATE_F#
+                       </isNotEmpty>
+                       <isNotEmpty property="STND_DATE_T" >
+                       AND STND_DATE     <![CDATA[<=]]> #STND_DATE_T#
+                       </isNotEmpty>
+	</statement>
+
+
+
+</sqlMap>

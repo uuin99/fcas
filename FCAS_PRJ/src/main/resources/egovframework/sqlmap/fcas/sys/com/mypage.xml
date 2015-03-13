@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="mypage">
+	<statement id="mypage.getCnctDate" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT CNCT_STRT_DATE, CNCT_END_DATE
+			 , CASE CNCT_STRT_DATE WHEN '' THEN '' ELSE DBO.FN_DATE_IN_DASH(CNCT_STRT_DATE) + ' ~ ' + DBO.FN_DATE_IN_DASH(CNCT_END_DATE) END  AS CNCT_DATE 
+		  FROM FCA_CNCT
+		 WHERE COMP_ID = #COMP_ID#
+		   AND CNCT_STRT_DATE <![CDATA[<=]]> SUBSTRING(REPLACE(CONVERT(VARCHAR,GETDATE(),120),'-',''),1,8)
+		   AND CNCT_END_DATE <![CDATA[>=]]> SUBSTRING(REPLACE(CONVERT(VARCHAR,GETDATE(),120),'-',''),1,8)
+	</statement>
+	
+	<statement id="mypage.getHistInfo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT * FROM (
+		SELECT ROW_NUMBER() OVER(ORDER BY HIST_DT DESC) AS ROWNUM
+		     , CONVERT(VARCHAR,HIST_DT,120) AS HIST_DT
+		     , ACES_IP
+		  FROM FCA_HIST
+		 WHERE USER_ID = #USER_ID#
+		   AND HIST_TYPE = 'A') AS A
+		 WHERE ROWNUM = 2
+	</statement>
+	
+	<statement id="mypage.getReportInfo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT  dbo.FN_NUM_IN_COMMA(OLN_CLS_TOTAL) AS OLN_CLS_TOTAL /*고객문의 합계*/
+		      , dbo.FN_NUM_IN_COMMA(OLN_CLS_FN) AS OLN_CLS_FN /*고객문의 문의 중 */
+		      , dbo.FN_NUM_IN_COMMA(OLN_CLS_FY) AS OLN_CLS_FY /*고객문의 답변처리*/
+		      , dbo.FN_NUM_IN_COMMA(FAIL_10) AS FAIL_10 /* 장애처리 - 접수 */
+		      , dbo.FN_NUM_IN_COMMA(FAIL_30) AS FAIL_30 /* 장애처리 - 처리 */
+		      , dbo.FN_NUM_IN_COMMA(FAIL_20) AS FAIL_20 /* 장애처리 - 미처리 */
+		      , dbo.FN_NUM_IN_COMMA(TODAY_ENTER_CNT) AS TODAY_ENTER_CNT /*기준일*/
+		      , dbo.FN_NUM_IN_COMMA(YESTER_ENTER_CNT) AS YESTER_ENTER_CNT /*전일*/
+		      , CASE DD.YESTER_ENTER_CNT WHEN 0 THEN 0 ELSE CONVERT(NUMERIC(10,1), ROUND(((DD.TODAY_ENTER_CNT / DD.YESTER_ENTER_CNT) * 100) - 100.0, 1) ) END AS PER_ENTER_CNT /*증감율*/
+		      , dbo.FN_NUM_IN_COMMA(MONTH_ENTER_CNT) AS MONTH_ENTER_CNT /*월누계*/
+		      , dbo.FN_NUM_IN_COMMA(TO_FM_ENTER_CNT) AS TO_FM_ENTER_CNT /* 일일 방문 수 - 총 객층수*/
+		      , dbo.FN_NUM_IN_COMMA(TO_F_ENTER_CNT) AS TO_F_ENTER_CNT /* 일일 방문 수 - 여성 */
+		      , dbo.FN_NUM_IN_COMMA(TO_M_ENTER_CNT) AS TO_M_ENTER_CNT /* 일일 방문 수 - 남성 */
+		      , dbo.FN_NUM_IN_COMMA(TT_FM_TOTAL) AS TT_FM_TOTAL /* 월 누계 - 총계층수 */
+		      , dbo.FN_NUM_IN_COMMA(TT_F_ENTER_CNT) AS TT_F_ENTER_CNT /* 월 누계 - 여성 */
+		      , dbo.FN_NUM_IN_COMMA(TT_M_ENTER_CNT) AS TT_M_ENTER_CNT /* 월 누계 - 남성 */
+		  FROM (SELECT (SELECT COUNT(*) /*고객문의 합계*/ 
+		                  FROM FCA_OLN_CLS 
+		                 WHERE 1 = 1
+		                   AND COMP_ID = #COMP_ID#
+		                   AND SHOP_ID = #SHOP_ID#
+		                   AND CANC_YN = 'N') AS OLN_CLS_TOTAL 
+		             , (SELECT COUNT(*) /*고객문의 문의 중 */
+		                  FROM FCA_OLN_CLS 
+		                 WHERE 1 = 1
+		                   AND COMP_ID = #COMP_ID#
+		                   AND SHOP_ID = #SHOP_ID# 
+		                   AND CANC_YN = 'N' 
+		                   AND FINS_YN = 'N') AS OLN_CLS_FN 
+		             , (SELECT COUNT(*) /*고객문의 답변처리*/
+		                  FROM FCA_OLN_CLS 
+		                 WHERE 1 = 1
+		                   AND COMP_ID = #COMP_ID#
+		                   AND SHOP_ID = #SHOP_ID# 
+		                   AND CANC_YN = 'N' 
+		                   AND FINS_YN = 'Y') AS OLN_CLS_FY 
+		             , (SELECT COUNT(*) /* 장애처리 - 접수 */
+		                  FROM FCA_FAIL_DESC 
+		                 WHERE 1 = 1
+		                   AND COMP_ID = #COMP_ID#
+		                   AND SHOP_ID = #SHOP_ID# 
+		                   AND FAIL_STAT = '10') AS FAIL_10 
+		             , (SELECT COUNT(*) /* 장애처리 - 처리 */
+		                  FROM FCA_FAIL_DESC 
+		                 WHERE 1 = 1
+		                   AND COMP_ID = #COMP_ID#
+		                   AND SHOP_ID = #SHOP_ID# 
+		                   AND FAIL_STAT = '30') AS FAIL_30 
+		             , (SELECT COUNT(*) /* 장애처리 - 미처리 */
+		                  FROM FCA_FAIL_DESC 
+		                 WHERE 1 = 1
+		                   AND COMP_ID = #COMP_ID#
+		                   AND SHOP_ID = #SHOP_ID# 
+		                   AND FAIL_STAT = '20') AS FAIL_20 
+		             , (SELECT ISNULL(SUM(ENTER_CNT),0)  /*기준일*/
+		                  FROM FCA_DAILY_STATS_CNT 
+		                 WHERE COMP_ID = #COMP_ID# 
+		                   AND SHOP_ID = #SHOP_ID# 
+		                   AND CMRA_GRP_ID = 'TT' 
+		                   AND STND_DATE = #STND_DATE#) AS TODAY_ENTER_CNT 
+		             , (SELECT ISNULL(SUM(ENTER_CNT),0) /*전일*/
+		                  FROM FCA_DAILY_STATS_CNT 
+		                 WHERE COMP_ID = #COMP_ID# 
+		                   AND SHOP_ID = #SHOP_ID# 
+		                   AND CMRA_GRP_ID = 'TT' 
+		                   AND STND_DATE = #BF_STND_DATE#) AS YESTER_ENTER_CNT 
+		             , (SELECT ISNULL(SUM(DSC.ENTER_CNT),0) /*월누계*/
+						  FROM (SELECT * 
+						          FROM FCA_DAILY_STATS_CNT
+						         WHERE 1 = 1
+						           AND COMP_ID = #COMP_ID#
+						           AND SHOP_ID = #SHOP_ID#
+						           AND CMRA_GRP_ID = 'TT'
+						           AND STND_YYMM = SUBSTRING(#STND_DATE#,1,6)) AS DSC
+						       LEFT OUTER JOIN FCA_SALES_INFO AS SI ON DSC.comp_id = SI.COMP_ID AND DSC.SHOP_ID = SI.SHOP_ID AND DSC.STND_DATE = SI.STND_DATE
+						 WHERE 1 = 1
+						   AND (SI.WORK_YN IS NULL OR SI.WORK_YN = 'Y')
+		                   ) AS MONTH_ENTER_CNT 
+		             , (SELECT ISNULL(SUM(ENTER_CNT),0) /* 일일 방문 수 - 총 객층수*/
+		                  FROM FCA_DAILY_STATS_CLASS
+		                 WHERE COMP_ID = #COMP_ID#
+		                   AND SHOP_ID = #SHOP_ID#
+		                   AND CMRA_GRP_ID = 'TT'
+		                   AND STND_DATE = #STND_DATE#
+		                   AND SEX_CD = 'T'
+		                   AND AGE_CD = 'TT') AS TO_FM_ENTER_CNT
+		             , (SELECT ISNULL(SUM(ENTER_CNT),0) /* 일일 방문 수 - 여성 */
+		                  FROM FCA_DAILY_STATS_CLASS
+		                 WHERE COMP_ID = #COMP_ID#
+		                   AND SHOP_ID = #SHOP_ID#
+		                   AND CMRA_GRP_ID = 'TT'
+		                   AND STND_DATE = #STND_DATE#
+		                   AND SEX_CD = 'F'
+		                   AND AGE_CD = 'TT') AS TO_F_ENTER_CNT
+		             , (SELECT ISNULL(SUM(ENTER_CNT),0) /* 일일 방문 수 - 남성 */
+		                  FROM FCA_DAILY_STATS_CLASS
+		                 WHERE COMP_ID = #COMP_ID#
+		                   AND SHOP_ID = #SHOP_ID#
+		                   AND CMRA_GRP_ID = 'TT'
+		                   AND STND_DATE = #STND_DATE#
+		                   AND SEX_CD = 'M'
+		                   AND AGE_CD = 'TT') AS TO_M_ENTER_CNT
+		             , (SELECT ISNULL(SUM(DSC.ENTER_CNT),0) /* 월 누계 - 총계층수 */
+						  FROM (SELECT * 
+						          FROM FCA_DAILY_STATS_CLASS
+						         WHERE COMP_ID = #COMP_ID#
+						           AND SHOP_ID = #SHOP_ID#
+						           AND CMRA_GRP_ID = 'TT'
+						           AND STND_YYMM = SUBSTRING(#STND_DATE#,1,6)
+						           AND SEX_CD = 'T'
+						           AND AGE_CD = 'TT') AS DSC
+						       LEFT OUTER JOIN FCA_SALES_INFO AS SI ON DSC.COMP_ID = SI.COMP_ID AND DSC.SHOP_ID = SI.SHOP_ID AND DSC.STND_DATE = SI.STND_DATE
+						 WHERE 1 = 1
+						   AND (SI.WORK_YN IS NULL OR SI.WORK_YN = 'Y')
+		                   ) AS TT_FM_TOTAL
+		             , (SELECT ISNULL(SUM(DSC.ENTER_CNT),0) /* 월 누계 - 여성 */
+						  FROM (SELECT * 
+						          FROM FCA_DAILY_STATS_CLASS
+						         WHERE COMP_ID = #COMP_ID#
+						           AND SHOP_ID = #SHOP_ID#
+						           AND CMRA_GRP_ID = 'TT'
+						           AND STND_YYMM = SUBSTRING(#STND_DATE#,1,6)
+						           AND SEX_CD = 'F'
+						           AND AGE_CD = 'TT') AS DSC
+						       LEFT OUTER JOIN FCA_SALES_INFO AS SI ON DSC.COMP_ID = SI.COMP_ID AND DSC.SHOP_ID = SI.SHOP_ID AND DSC.STND_DATE = SI.STND_DATE
+						 WHERE 1 = 1
+						   AND (SI.WORK_YN IS NULL OR SI.WORK_YN = 'Y')
+		                   ) AS TT_F_ENTER_CNT
+		             , (SELECT ISNULL(SUM(DSC.ENTER_CNT),0) /* 월 누계 - 남성 */
+						  FROM (SELECT * 
+						          FROM FCA_DAILY_STATS_CLASS
+						         WHERE COMP_ID = #COMP_ID#
+						           AND SHOP_ID = #SHOP_ID#
+						           AND CMRA_GRP_ID = 'TT'
+						           AND STND_YYMM = SUBSTRING(#STND_DATE#,1,6)
+						           AND SEX_CD = 'M'
+						           AND AGE_CD = 'TT') AS DSC
+						       LEFT OUTER JOIN FCA_SALES_INFO AS SI ON DSC.COMP_ID = SI.COMP_ID AND DSC.SHOP_ID = SI.SHOP_ID AND DSC.STND_DATE = SI.STND_DATE
+						 WHERE 1 = 1
+						   AND (SI.WORK_YN IS NULL OR SI.WORK_YN = 'Y')
+		                   ) AS TT_M_ENTER_CNT) AS DD
+	</statement>
+	
+	<statement id="mypage.getWeatherInfo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT KWTH_STAT_CD, KWTH_STAT_NM, WDIRK, WSPEED, TEMP, HUMI
+		  FROM FCA_KWTH_INFO AS KI
+		 WHERE KI.STND_DATE = #STND_DATE#
+		   AND TIME_GRP = '02'
+		   AND POINT_CODE = (SELECT KWTH_ADDR_CODE FROM FCA_SHOP WHERE COMP_ID = #COMP_ID# AND SHOP_ID = #SHOP_ID#)	
+	</statement>
+	
+	<statement id="mypage.getNoticeInfo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT RN.RNUM
+		     , ISNULL(NT.SEQ,'') AS SEQ, ISNULL(NT.SUBJ,'') AS SUBJ, ISNULL(NT.NT_DATE,'') AS NT_DATE
+		  FROM (SELECT 1 AS RNUM
+		        UNION ALL
+		        SELECT 2 AS RNUM
+		        UNION ALL
+		        SELECT 3 AS RNUM) AS RN
+		        LEFT OUTER JOIN (SELECT * 
+		                           FROM (SELECT ROW_NUMBER() OVER(ORDER BY A.SEQ DESC) AS ROWNUM
+		                              		    , A.SEQ, A.SUBJ, A.CNTS, B.FILE_NM
+		                              		    , SUBSTRING(CONVERT(VARCHAR,A.UPDT_DT,112),1,4)+'.'+SUBSTRING(CONVERT(VARCHAR,A.UPDT_DT,112),5,2)+'.'+SUBSTRING(CONVERT(VARCHAR,A.UPDT_DT,112),7,2) AS NT_DATE
+		                              		 FROM FCA_COMM_BRD AS A
+		                              	  LEFT OUTER JOIN FCALOB.DBO.FCA_FILE_MAST AS B
+		                             		    ON A.FILE_UID = B.FILE_UID AND 1 = B.FILE_SEQ
+		                             		 WHERE A.BRD_ID = 'NOTICE_003'
+		                             		   AND A.BRD_TYPE = 'NOTICE'
+		                             		   AND A.NTIC_YN = 'Y'
+		                             		   AND CONVERT(VARCHAR, GETDATE(),112) BETWEEN A.NTIC_STRT_DATE AND A.NTIC_END_DATE) AS C
+		                             		 WHERE C.ROWNUM <![CDATA[<=]]> 3) NT ON RN.RNUM = NT.ROWNUM
+		 ORDER BY RN.RNUM	
+	</statement>
+</sqlMap>

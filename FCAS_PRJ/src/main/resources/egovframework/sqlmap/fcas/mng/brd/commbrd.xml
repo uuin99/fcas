@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="commbrd">
+	<!-- 게시판 List (Paging) -->
+	<statement id="commbrd.getCommBrdList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		 WITH BRD_CTE(
+				BRD_ID, SEQ, BRD_TYPE
+			  , TOP_SEQ, PRNT_SEQ, LEV, STEP
+		      , SUBJ, CNTS, FILE_UID, READ_CNT
+		      , NTIC_YN, NTIC_STRT_DATE, NTIC_END_DATE, RMTE_IP
+		      , REGI_ID, REGI_DT, UPDT_ID, UPDT_DT
+			  , SORT) 
+		   AS (  SELECT A.BRD_ID, A.SEQ, A.BRD_TYPE
+					  , A.TOP_SEQ, A.PRNT_SEQ, A.LEV, STEP
+					  , A.SUBJ, A.CNTS, A.FILE_UID, A.READ_CNT
+					  , A.NTIC_YN, A.NTIC_STRT_DATE, A.NTIC_END_DATE, A.RMTE_IP
+					  , A.REGI_ID, CONVERT(VARCHAR, A.REGI_DT, 120) AS REGI_DT, A.UPDT_ID, CONVERT(VARCHAR, A.UPDT_DT, 120) AS UPDT_DT
+					  , CAST(A.SEQ AS VARCHAR(100)) AS SORT
+				   FROM FCA_COMM_BRD AS A      
+				  WHERE 1=1
+					AND A.BRD_ID = #BRD_ID#
+					AND A.STEP = 0  
+				  UNION ALL
+				 SELECT B.BRD_ID, B.SEQ, B.BRD_TYPE
+					  , B.TOP_SEQ, B.PRNT_SEQ, B.LEV, B.STEP
+					  , B.SUBJ, B.CNTS, B.FILE_UID, B.READ_CNT
+					  , B.NTIC_YN, B.NTIC_STRT_DATE, B.NTIC_END_DATE, B.RMTE_IP
+					  , B.REGI_ID, CONVERT(VARCHAR, B.REGI_DT, 120) AS REGI_DT, B.UPDT_ID, CONVERT(VARCHAR, B.UPDT_DT, 120) AS UPDT_DT
+					  , CAST(C.SORT + '|' + CAST(B.STEP AS VARCHAR(10)) AS VARCHAR(100)) AS SORT
+				   FROM FCA_COMM_BRD AS B
+				  INNER JOIN BRD_CTE C ON B.BRD_ID = C.BRD_ID AND B.PRNT_SEQ = C.SEQ
+				  WHERE 1=1
+					AND B.BRD_ID = #BRD_ID#
+					AND B.STEP <![CDATA[>]]> 0)
+		SELECT /* [CommBrdController] commbrd.getCommBrdList */
+		       E.*
+		  FROM (
+		  		<!-- 쿼리 구현 Start -->
+				SELECT ROW_NUMBER() OVER(ORDER BY D.TOP_SEQ DESC, D.SORT) AS ROWNUM
+				      , D.BRD_ID, D.SEQ, D.BRD_TYPE
+					  , D.TOP_SEQ, D.PRNT_SEQ, D.LEV, D.STEP
+				      , D.SUBJ, D.CNTS, D.FILE_UID, D.READ_CNT
+				      , D.NTIC_YN, D.NTIC_STRT_DATE, D.NTIC_END_DATE, D.RMTE_IP
+				      , D.REGI_ID, dbo.FN_USER_NM(D.REGI_ID) AS REGI_NM, D.REGI_DT
+					  , D.UPDT_ID, dbo.FN_USER_NM(D.UPDT_ID) AS UPDT_NM, D.UPDT_DT
+					  , D.SORT, #PROG_ID# AS PROG_ID, E.FILE_NM
+				  FROM BRD_CTE D
+				  	   LEFT OUTER JOIN fcalob.dbo.FCA_FILE_MAST AS E ON D.FILE_UID = E.FILE_UID AND 1 = E.FILE_SEQ
+				 WHERE 1=1
+				   <isNotEmpty property="SUBJ">
+				   AND D.SUBJ LIKE '%' + #SUBJ# + '%'
+				   </isNotEmpty>
+				   <isEqual property="NOTICE_TYPE" compareValue="SEARCH">
+				   AND D.NTIC_YN = 'Y'
+				   AND CONVERT(VARCHAR,GETDATE(),112) BETWEEN D.NTIC_STRT_DATE AND D.NTIC_END_DATE
+				   </isEqual>
+				 <!-- 쿼리 구현 End -->
+		) AS E
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+	</statement>
+	
+	<!-- 게시판 List (Paging Count) -->
+	<statement id="commbrd.getCommBrdListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [CommBrdController] commbrd.getCommBrdListCount */
+			   COUNT(*)
+		  FROM FCA_COMM_BRD AS CB
+		 WHERE 1=1
+	       AND CB.BRD_ID = #BRD_ID#
+	       <isNotEmpty property="SUBJ">
+		    AND CB.SUBJ LIKE '%' + #SUBJ# + '%'
+		    </isNotEmpty>
+		    <isEqual property="NOTICE_TYPE" compareValue="SEARCH">
+		    AND CB.NTIC_YN = 'Y'
+		    AND CONVERT(VARCHAR,GETDATE(),112) BETWEEN CB.NTIC_STRT_DATE AND CB.NTIC_END_DATE
+		    </isEqual>		    
+	</statement>
+	
+	<!-- 단일 게시판 -->
+	<statement id="commbrd.getCommBrd" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [CommBrdController] commbrd.getCommBrd */
+		       A.BRD_ID, A.SEQ, A.BRD_TYPE, A.TOP_SEQ, A.PRNT_SEQ
+		     , A.LEV, A.STEP, A.READ_CNT, A.RMTE_IP
+		     , A.REGI_ID, dbo.FN_USER_NM(A.REGI_ID) AS REGI_NM, CONVERT(VARCHAR,A.REGI_DT,120) AS REGI_DT
+		     , A.UPDT_ID, dbo.FN_USER_NM(A.UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR,A.UPDT_DT,120) AS UPDT_DT
+		     , dbo.FN_USER_INFO(A.REGI_ID, A.REGI_DT) AS REGI_INFO, dbo.FN_USER_INFO(A.UPDT_ID, A.UPDT_DT) AS UPDT_INFO
+		     , A.NTIC_YN, dbo.FN_DATE_IN_DASH(A.NTIC_STRT_DATE) AS NTIC_STRT_DATE, dbo.FN_DATE_IN_DASH(A.NTIC_END_DATE) AS NTIC_END_DATE
+		     , A.NTIC_YN AS NTIC_YN_V, dbo.FN_DATE_IN_DASH(A.NTIC_STRT_DATE) AS NTIC_STRT_DATE_V, dbo.FN_DATE_IN_DASH(A.NTIC_END_DATE) AS NTIC_END_DATE_V
+		     , A.SUBJ, A.CNTS, A.SUBJ AS SUBJ_V, A.CNTS AS CNTS_V
+		     , A.FILE_UID, B.FILE_SEQ, B.FILE_NM, A.FILE_UID AS FILE_UID_V, B.FILE_SEQ AS FILE_SEQ_V, B.FILE_NM AS FILE_NM_V 
+		     , #PROG_ID# AS PROG_ID
+		  FROM FCA_COMM_BRD AS A
+		       LEFT OUTER JOIN fcalob.dbo.FCA_FILE_MAST AS B ON A.FILE_UID = B.FILE_UID AND 1 = B.FILE_SEQ
+		 WHERE A.BRD_ID = #BRD_ID#
+		   AND A.SEQ = #SEQ#
+	</statement>
+
+	<!-- 게시판  Read Cnt + 1 -->
+	<statement id="commbrd.updateUpReadCnt" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [CommBrdController] commmbrd.updateUpReadCnt */
+		       FCA_COMM_BRD
+		   SET READ_CNT = READ_CNT + 1
+		 WHERE 1=1
+		   AND BRD_ID = #BRD_ID#
+		   AND SEQ = #SEQ#
+	</statement>
+	
+	<!-- 게시판  입력 -->
+	<statement id="commbrd.insertBrd" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT /* [CommBrdController] commbrd.insertBrd */
+		       INTO FCA_COMM_BRD
+			( BRD_ID , SEQ , BRD_TYPE
+			, TOP_SEQ , PRNT_SEQ , LEV , STEP
+			, SUBJ , CNTS
+			, FILE_UID , READ_CNT
+			, NTIC_YN , NTIC_STRT_DATE , NTIC_END_DATE
+			, RMTE_IP
+			, REGI_ID , REGI_DT, UPDT_ID , UPDT_DT)
+		VALUES
+			( #BRD_ID# , #SEQ# , #BRD_TYPE#
+			, #TOP_SEQ# , #PRNT_SEQ# , #LEV# , #STEP#
+			, #SUBJ# , #CNTS#
+			, #FILE_UID# , #READ_CNT#
+			, CASE #NTIC_YN# WHEN 'Y' THEN 'Y' ELSE NULL END , REPLACE(#NTIC_STRT_DATE#,'-','') , REPLACE(#NTIC_END_DATE#,'-','')
+			, #RMTE_IP#
+			, #USER_ID# , GETDATE(), #USER_ID# , GETDATE())
+	</statement>
+	
+	<!-- 게시판  수정 -->
+	<statement id="commbrd.updateBrd" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [CommBrdController] commbrd.updateBrd */
+		       FCA_COMM_BRD
+		   SET SUBJ = #SUBJ#
+		     , CNTS = #CNTS#
+		     , FILE_UID = #FILE_UID#
+		     , NTIC_YN = CASE #NTIC_YN# WHEN 'Y' THEN 'Y' ELSE NULL END
+		     , NTIC_STRT_DATE = REPLACE(#NTIC_STRT_DATE#,'-','')
+		     , NTIC_END_DATE = REPLACE(#NTIC_END_DATE#,'-','')
+		     , RMTE_IP = #RMTE_IP#
+		     , UPDT_ID = #USER_ID#
+		     , UPDT_DT = GETDATE()
+		 WHERE 1=1
+		   AND BRD_ID = #BRD_ID#
+		   AND SEQ = #SEQ#
+	</statement>
+	
+	<!-- 게시물 삭제 시 같이 살제 할 하위 답글(Deth)를 찾음.-->
+	<statement id="commbrd.selectBrdDelList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		WITH BRD_CTE(
+				BRD_ID, SEQ
+			  , TOP_SEQ, PRNT_SEQ, LEV, STEP
+			  , SORT) 
+		   AS (  SELECT A.BRD_ID, A.SEQ
+					  , A.TOP_SEQ, A.PRNT_SEQ, A.LEV, STEP
+					  , CAST(A.SEQ AS VARCHAR(100)) AS SORT
+				   FROM FCA_COMM_BRD AS A      
+				  WHERE 1=1
+					AND A.BRD_ID = #BRD_ID#
+					AND A.SEQ = #SEQ#
+					AND A.TOP_SEQ = #TOP_SEQ#
+				  UNION ALL
+				 SELECT B.BRD_ID, B.SEQ
+					  , B.TOP_SEQ, B.PRNT_SEQ, B.LEV, B.STEP
+					  , CAST(C.SORT + '|' + CAST(B.STEP AS VARCHAR(10)) AS VARCHAR(100)) AS SORT
+				   FROM FCA_COMM_BRD AS B
+				  INNER JOIN BRD_CTE C ON B.BRD_ID = C.BRD_ID AND B.PRNT_SEQ = C.SEQ
+				  WHERE 1=1
+					AND B.BRD_ID = #BRD_ID#
+					AND B.STEP <![CDATA[>]]> 0
+					AND B.TOP_SEQ = #TOP_SEQ#)
+		SELECT  D.BRD_ID, D.SEQ
+		  FROM BRD_CTE D
+	</statement>
+	
+	<!-- 게시판  삭제(추가사항:하위 Deth 게시물 삭제에 대한 Logic Checking) -->
+	<statement id="commbrd.deleteBrd" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [CommBrdController] commbrd.deleteBrd */
+		  FROM FCA_COMM_BRD
+		 WHERE 1=1
+		   AND BRD_ID = #BRD_ID#
+		   AND SEQ = #SEQ#
+	</statement>
+	
+	<!-- [계층형 게시판] 게시판 입력되는 Step No 호출 (STEP을 알수 없을 경우에는 0을 Return;) -->
+	<statement id="commbrd.getBrdStepNo" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT /* [CommBrdController] commbrd.getBrdStepNo */
+		       ISNULL(MAX(STEP),0) AS INPUT_STEP
+		  FROM FCA_COMM_BRD
+		 WHERE 1=1
+		   AND BRD_ID = #BRD_ID#
+		   AND TOP_SEQ = #TOP_SEQ#
+		   AND PRNT_SEQ = #PRNT_SEQ#
+	</statement>
+	
+	<!-- 게시판 Seq 호출[차후 삭제 예정 Seq Table 생성 후 삭제.] -->
+	<statement id="commbrd.getMaxSeq" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT /* [CommBrdController] commbrd.getMaxSeq */
+		       ISNULL(MAX(CAST(SEQ AS INT)),'0')
+		  FROM FCA_COMM_BRD
+		 WHERE 1=1
+		   AND BRD_ID = #BRD_ID#
+	</statement>
+	
+	<statement id="commbrd.selectNticStrtDateValid" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT CASE WHEN CONVERT(DATE,CONVERT(VARCHAR,GETDATE(),23)) > CONVERT(DATE, SUBSTRING(#NTIC_STRT_DATE#,1,10)) THEN 'COM_ERR_0066' ELSE 'Y' END AS RSLT
+	</statement>
+	
+	<statement id="commbrd.getValidPublicBrdFileDownload" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT ISNULL(MAX(RSLT),'COM_ERR_0007') 
+		  FROM (SELECT CASE 
+		              WHEN CB.NTIC_YN IS NULL OR CB.NTIC_YN <![CDATA[<>]]> 'Y' THEN 'COM_ERR_0075'
+		              WHEN NOT (REPLACE(CONVERT(VARCHAR,GETDATE(), 23),'-','') BETWEEN CB.NTIC_STRT_DATE AND CB.NTIC_END_DATE) THEN 'COM_ERR_0076'
+		              WHEN (SELECT COUNT(*) FROM FCALOB.DBO.FCA_FILE_MAST WHERE FILE_UID = CB.FILE_UID) = 0 THEN 'COM_ERR_0017'
+		              ELSE CB.FILE_UID END AS RSLT
+		        FROM FCA_COMM_BRD AS CB
+		       WHERE BRD_ID = #BRD_ID#
+		         AND SEQ = #SEQ#) AS DD
+	</statement>	
+	
+	<statement id="commbrd.getValidPublicBrdSearchCountUp" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT ISNULL(MAX(RSLT),'COM_ERR_0007')
+		  FROM (SELECT CASE 
+		              WHEN CB.NTIC_YN IS NULL OR CB.NTIC_YN <![CDATA[<>]]> 'Y' THEN 'COM_ERR_0075'
+		              WHEN NOT (REPLACE(CONVERT(VARCHAR,GETDATE(), 23),'-','') BETWEEN CB.NTIC_STRT_DATE AND CB.NTIC_END_DATE) THEN 'COM_ERR_0076'
+		              ELSE 'Y' END AS RSLT
+		        FROM FCA_COMM_BRD AS CB
+		       WHERE BRD_ID = #BRD_ID#
+		         AND SEQ = #SEQ#) AS DD
+	</statement>		
+	
+</sqlMap>

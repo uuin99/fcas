@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN"
+    "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/com/codemngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/com/msgmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/com/authmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/com/menumngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/com/progmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/com/authmenumngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/com/usermngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/com/sysusehist.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/brd/commbrd.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/svc/compmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/svc/shopmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/svc/addrmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/svc/eqipmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/svc/eqipgrpmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/svc/failmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/svc/olnclsmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/svc/cnctmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/svc/necconmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/mng/svc/smsmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/sys/com/common.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/sys/com/loginmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/sys/com/mypage.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/cus/set/salesinfomngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/cus/set/shopevntmngt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/cus/fad/datacnt.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/cus/fad/datacls.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/cus/fad/shopstrdreport.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/cus/fad/shopstrdreportcpa.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/cus/fad/salesinforeport.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/cus/ifi/marketstrdreport.xml"/>
+	<sqlMap resource="egovframework/sqlmap/fcas/tst/cht/testchart.xml"/>
+
+</sqlMapConfig>

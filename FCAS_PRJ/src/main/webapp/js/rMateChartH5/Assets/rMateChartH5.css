@@ -1,0 +1,85 @@
+/* Scrollbar Div */
+.rMateChartH5__ScrollBar {
+	border:1px solid #CCCCCC;
+}
+
+/* Horizontal scrollbar track Div */
+.rMateChartH5__HScrollTrack {
+	background:url('./h_scroll_track.png') repeat-x;
+}
+
+/* Horizontal scrollbar thumb Div */
+.rMateChartH5__HScrollThumb {
+	background:url('./h_scroll_thumb.png') repeat-x;
+	border:1px solid #999999;
+	cursor:pointer;
+}
+
+/* Horizontal scrollbar thumb Div - hover */
+.rMateChartH5__HScrollThumb:hover{
+	background:url('./h_scroll_thumb_hover.png') repeat-x;
+}
+
+/* Horizontal scrollbar thumb header Div  */
+.rMateChartH5__HScrollThumbHeader{
+	background:url('./h_scroll_line.png') no-repeat;
+}
+
+/* Horizontal scrollbar right arrow Div  */
+.rMateChartH5__HScrollUpArrow {
+	background:url('./right_scroll_arrow.png') no-repeat;
+	cursor:pointer;
+}
+
+/* Horizontal scrollbar left arrow Div  */
+.rMateChartH5__HScrollDownArrow {
+	background:url('./left_scroll_arrow.png') no-repeat;
+	cursor:pointer;
+}
+
+/* Vertical scrollbar track Div */
+.rMateChartH5__VScrollTrack {
+	background:url('./v_scroll_track.png') repeat-y;
+}
+
+.rMateChartH5__VScrollThumb {
+	background:url('./v_scroll_thumb.png') repeat-y;
+	border:1px solid #999999;
+	cursor:pointer;
+}
+
+.rMateChartH5__VScrollThumb:hover{
+	background:url('./v_scroll_thumb_hover.png') repeat-y;
+}
+
+.rMateChartH5__VScrollThumbHeader{
+	background:url('./v_scroll_line.png') no-repeat;
+}
+
+.rMateChartH5__VScrollUpArrow {
+	background:url('./up_scroll_arrow.png') no-repeat;
+	cursor:pointer;
+}
+
+.rMateChartH5__VScrollDownArrow {
+	background:url('./down_scroll_arrow.png') no-repeat;
+	cursor:pointer;
+}
+
+/* History chart range selector thumb */
+.rMateChartH5__ChartRangeSelector_Thumb {
+	background:url('./selector.png') no-repeat;
+	cursor:col-resize;
+}
+
+/* Preloader Div */
+.rMateChartH5__Preloader {
+	top:0px;
+	left:0px;
+	z-index:2;
+	width:100%;
+	height:100%;
+	opacity:0.7;
+	filter: progid:DXImageTransform.Microsoft.Alpha(opacity=70); 
+	background:url(./loader.gif) 50% 50% no-repeat #FFF;
+}

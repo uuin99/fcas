@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="datacnt">
+	<statement id="datacnt.selectDailyCntList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [] datacnt.selectDailyCntList */
+		       A.*
+		  FROM (
+					SELECT ROW_NUMBER() OVER(ORDER BY COMP_ID , SHOP_ID , CMRA_GRP_ID , STND_DATE , DOV_CD DESC) AS ROWNUM, * FROM (
+						SELECT COMP_ID
+							  ,DBO.FN_COMP_NM(COMP_ID) AS COMP_NM
+						      ,SHOP_ID
+						      ,DBO.FN_SHOP_NM(COMP_ID, SHOP_ID) AS SHOP_NM
+						      ,CMRA_GRP_ID
+						      ,CASE CMRA_GRP_ID WHEN 'TT' THEN '전체' ELSE ( SELECT K.CMRA_GRP_NM FROM FCA_EQIP_GRP K WHERE K.CMRA_GRP_ID = A.CMRA_GRP_ID ) END AS CMRA_GRP_NM
+						      ,dbo.FN_DATE_IN_DASH(STND_DATE) AS STND_DATE
+						      ,DOV_CD
+						      ,DBO.FN_CODE_NM('dov_cd' , DOV_CD ) AS DOV_CD_NM
+						      ,SUBSTRING(dbo.FN_DATE_IN_DASH(STND_YYMM + '01'),1,7) AS STND_YYMM
+						      ,DBO.FN_NUM_IN_COMMA(ENTER_CNT) AS ENTER_CNT
+						      ,DBO.FN_NUM_IN_COMMA(EXIT_CNT) AS EXIT_CNT
+						      ,DBO.FN_NUM_IN_COMMA(TOTAL_CNT) AS TOTAL_CNT
+						      ,DBO.FN_NUM_IN_COMMA(STAY_CNT) AS STAY_CNT
+						      ,CONVERT(VARCHAR, WORK_DT, 120) AS WORK_DT
+						      ,ISNULL(( SELECT L.TOTAL_YN FROM FCA_EQIP_GRP AS L WHERE L.CMRA_GRP_ID = A.CMRA_GRP_ID ),'Y') AS TOTAL_YN
+						      ,ISNULL((SELECT WORK_YN FROM FCA_SALES_INFO AS M WHERE M.COMP_ID = A.COMP_ID AND M.SHOP_ID = A.SHOP_ID AND M.STND_DATE = A.STND_DATE),'N') AS WORK_YN
+						  FROM FCA_DAILY_STATS_CNT A
+						 WHERE 1=1
+					       <isNotEmpty property="COMP_ID">
+					       AND COMP_ID = #COMP_ID#
+					       </isNotEmpty>
+					       <isNotEmpty property="SHOP_ID">
+					       AND SHOP_ID = #SHOP_ID#
+					       </isNotEmpty>
+	                       <isNotEmpty property="STND_DATE_F" >
+	                       AND STND_DATE     >= #STND_DATE_F#
+	                       </isNotEmpty>
+	                       <isNotEmpty property="STND_DATE_T" >
+	                       AND STND_DATE     <![CDATA[<=]]> #STND_DATE_T#
+	                       </isNotEmpty>
+		         	) AS TA
+					WHERE 1=1
+  					  <isEqual property="RADIO_VALUE" compareValue="TT">
+			          AND TA.CMRA_GRP_ID = 'TT'
+			          </isEqual>
+  					  <isEqual property="RADIO_VALUE" compareValue="NOT_TT">
+			          AND TA.CMRA_GRP_ID != 'TT'
+			          </isEqual>
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+
+	<statement id="datacnt.selectDailyCntListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+					/* [] datacnt.selectDailyCntListCount */
+					SELECT COUNT(*) AS CNT FROM (
+						SELECT COMP_ID
+							  ,DBO.FN_COMP_NM(COMP_ID) AS COMP_NM
+						      ,SHOP_ID
+						      ,DBO.FN_SHOP_NM(COMP_ID, SHOP_ID) AS SHOP_NM
+						      ,CMRA_GRP_ID
+						      ,( SELECT K.CMRA_GRP_NM FROM FCA_EQIP_GRP K WHERE K.CMRA_GRP_ID = A.CMRA_GRP_ID ) AS CMRA_GRP_NM
+						      ,dbo.FN_DATE_IN_DASH(STND_DATE) AS STND_DATE
+						      ,DOV_CD
+						      ,DBO.FN_CODE_NM('dov_cd' , DOV_CD ) AS DOV_CD_NM
+						      ,STND_YYMM
+						      ,ENTER_CNT
+						      ,EXIT_CNT
+						      ,TOTAL_CNT
+						      ,STAY_CNT
+						      ,CONVERT(VARCHAR, WORK_DT, 120) AS WORK_DT
+						  FROM FCA_DAILY_STATS_CNT A
+						 WHERE 1=1
+					       <isNotEmpty property="COMP_ID">
+					       AND COMP_ID = #COMP_ID#
+					       </isNotEmpty>
+					       <isNotEmpty property="SHOP_ID">
+					       AND SHOP_ID = #SHOP_ID#
+					       </isNotEmpty>
+	                       <isNotEmpty property="STND_DATE_F" >
+	                       AND STND_DATE     >= #STND_DATE_F#
+	                       </isNotEmpty>
+	                       <isNotEmpty property="STND_DATE_T" >
+	                       AND STND_DATE     <![CDATA[<=]]> #STND_DATE_T#
+	                       </isNotEmpty>
+		         	) AS TA
+					WHERE 1=1
+  					  <isEqual property="RADIO_VALUE" compareValue="TT">
+			          AND TA.CMRA_GRP_ID = 'TT'
+			          </isEqual>
+  					  <isEqual property="RADIO_VALUE" compareValue="NOT_TT">
+			          AND TA.CMRA_GRP_ID != 'TT'
+			          </isEqual>
+	</statement>
+
+
+	<statement id="datacnt.selectTimeCntList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [] datacnt.selectTimeCntList */
+		       A.*
+		  FROM (
+					SELECT ROW_NUMBER() OVER(ORDER BY COMP_ID , SHOP_ID , CMRA_GRP_ID , STND_DATE , TIME_CD DESC) AS ROWNUM , * FROM (
+						SELECT COMP_ID
+						      ,DBO.FN_COMP_NM(COMP_ID) AS COMP_NM
+						      ,SHOP_ID
+						      ,DBO.FN_SHOP_NM(COMP_ID, SHOP_ID) AS SHOP_NM
+						      ,CMRA_GRP_ID
+						      ,CASE CMRA_GRP_ID WHEN 'TT' THEN '전체' ELSE ( SELECT K.CMRA_GRP_NM FROM FCA_EQIP_GRP K WHERE K.CMRA_GRP_ID = A.CMRA_GRP_ID ) END AS CMRA_GRP_NM
+						      ,dbo.FN_DATE_IN_DASH(STND_DATE) AS STND_DATE
+						      ,TIME_CD
+						      ,DBO.FN_CODE_NM('time_cd' , TIME_CD ) AS TIME_CD_NM
+						      ,DOV_CD
+						      ,DBO.FN_CODE_NM('dov_cd' , DOV_CD ) AS DOV_CD_NM
+						      ,TIME_GRP
+						      ,DBO.FN_CODE_NM('time_grp' , TIME_GRP ) AS TIME_GRP_NM
+						      ,SUBSTRING(dbo.FN_DATE_IN_DASH(STND_YYMM + '01'),1,7) AS STND_YYMM
+						      ,DBO.FN_NUM_IN_COMMA(ENTER_CNT) AS ENTER_CNT
+						      ,DBO.FN_NUM_IN_COMMA(EXIT_CNT) AS EXIT_CNT
+						      ,DBO.FN_NUM_IN_COMMA(TOTAL_CNT) AS TOTAL_CNT
+						      ,DBO.FN_NUM_IN_COMMA(STAY_CNT) AS STAY_CNT
+						      ,CONVERT(VARCHAR, WORK_DT, 120) AS WORK_DT
+						      ,ISNULL(( SELECT L.TOTAL_YN FROM FCA_EQIP_GRP AS L WHERE L.CMRA_GRP_ID = A.CMRA_GRP_ID ),'Y') AS TOTAL_YN
+						      ,ISNULL((SELECT WORK_YN FROM FCA_SALES_INFO AS M WHERE M.COMP_ID = A.COMP_ID AND M.SHOP_ID = A.SHOP_ID AND M.STND_DATE = A.STND_DATE),'N') AS WORK_YN						      
+	  				      FROM FCATBS.DBO.FCA_TIMES_STATS_CNT A
+						 WHERE 1=1
+					       <isNotEmpty property="COMP_ID">
+					       AND COMP_ID = #COMP_ID#
+					       </isNotEmpty>
+					       <isNotEmpty property="SHOP_ID">
+					       AND SHOP_ID = #SHOP_ID#
+					       </isNotEmpty>
+	                       <isNotEmpty property="STND_DATE_F" >
+	                       AND STND_DATE     >= #STND_DATE_F#
+	                       </isNotEmpty>
+	                       <isNotEmpty property="STND_DATE_T" >
+	                       AND STND_DATE     <![CDATA[<=]]> #STND_DATE_T#
+	                       </isNotEmpty>
+		         	) AS TA
+					WHERE 1=1
+  					  <isEqual property="RADIO_VALUE" compareValue="TT">
+			          AND TA.CMRA_GRP_ID = 'TT'
+			          </isEqual>
+  					  <isEqual property="RADIO_VALUE" compareValue="NOT_TT">
+			          AND TA.CMRA_GRP_ID != 'TT'
+			          </isEqual>
+
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+
+	<statement id="datacnt.selectTimeCntListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+					/* [] datacnt.selectTimeCntListCount */
+					SELECT COUNT(*) AS CNT FROM (
+						SELECT COMP_ID
+						      ,DBO.FN_COMP_NM(COMP_ID) AS COMP_NM
+						      ,SHOP_ID
+						      ,DBO.FN_SHOP_NM(COMP_ID, SHOP_ID) AS SHOP_NM
+						      ,CMRA_GRP_ID
+						      ,( SELECT K.CMRA_GRP_NM FROM FCA_EQIP_GRP K WHERE K.CMRA_GRP_ID = A.CMRA_GRP_ID ) AS CMRA_GRP_NM
+						      ,dbo.FN_DATE_IN_DASH(STND_DATE) AS STND_DATE
+						      ,TIME_CD
+						      ,DBO.FN_CODE_NM('time_cd' , TIME_CD ) AS TIME_CD_NM
+						      ,DOV_CD
+						      ,DBO.FN_CODE_NM('dov_cd' , DOV_CD ) AS DOV_CD_NM
+						      ,TIME_GRP
+						      ,DBO.FN_CODE_NM('time_grp' , TIME_GRP ) AS TIME_GRP_NM
+						      ,STND_YYMM
+						      ,ENTER_CNT
+						      ,EXIT_CNT
+						      ,TOTAL_CNT
+						      ,STAY_CNT
+						      ,CONVERT(VARCHAR, WORK_DT, 120) AS WORK_DT
+	  				      FROM FCATBS.DBO.FCA_TIMES_STATS_CNT A
+						 WHERE 1=1
+					       <isNotEmpty property="COMP_ID">
+					       AND COMP_ID = #COMP_ID#
+					       </isNotEmpty>
+					       <isNotEmpty property="SHOP_ID">
+					       AND SHOP_ID = #SHOP_ID#
+					       </isNotEmpty>
+	                       <isNotEmpty property="STND_DATE_F" >
+	                       AND STND_DATE     >= #STND_DATE_F#
+	                       </isNotEmpty>
+	                       <isNotEmpty property="STND_DATE_T" >
+	                       AND STND_DATE     <![CDATA[<=]]> #STND_DATE_T#
+	                       </isNotEmpty>
+		         	) AS TA
+					WHERE 1=1
+  					  <isEqual property="RADIO_VALUE" compareValue="TT">
+			          AND TA.CMRA_GRP_ID = 'TT'
+			          </isEqual>
+  					  <isEqual property="RADIO_VALUE" compareValue="NOT_TT">
+			          AND TA.CMRA_GRP_ID != 'TT'
+			          </isEqual>
+	</statement>
+
+
+
+</sqlMap>

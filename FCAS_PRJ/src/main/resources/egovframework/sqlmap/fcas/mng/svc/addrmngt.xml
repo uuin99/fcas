@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="addrmngt">
+	<statement id="addrmngt.getAddrList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [] addrmngt.getAddrList */
+		       A.*
+		  FROM (
+
+					SELECT
+							 ROW_NUMBER() OVER(ORDER BY ADDR_CD ) AS ROWNUM
+ 							,ADDR_CD
+							,ADDR
+							,ADDR_DIV
+							,DBO.FN_CODE_NM( 'addr_div' , ADDR_DIV)  AS ADDR_DIV_NM
+					  FROM FCA_ADDR
+					 WHERE 1=1
+				      <isNotEmpty property="ADDR_CD">
+				      AND ADDR_CD LIKE #ADDR_CD#+'%'
+				      </isNotEmpty>
+				      <isNotEmpty property="ADDR">
+				      AND ADDR LIKE '%'+#ADDR#+'%'
+				      </isNotEmpty>
+					  <isNotEmpty property="ADDR_DIV">
+				      AND ADDR_DIV = #ADDR_DIV#
+				      </isNotEmpty>
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+
+	<statement id="addrmngt.getAddrListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		/* [] addrmngt.getAddrListCount */
+		SELECT COUNT(*) AS CNT
+		  FROM FCA_ADDR
+		 WHERE 1=1
+	      <isNotEmpty property="ADDR_CD">
+	      AND ADDR_CD LIKE #ADDR_CD#+'%'
+	      </isNotEmpty>
+	      <isNotEmpty property="ADDR">
+	      AND ADDR LIKE '%'+#ADDR#+'%'
+	      </isNotEmpty>
+		  <isNotEmpty property="ADDR_DIV">
+	      AND ADDR_DIV = #ADDR_DIV#
+	      </isNotEmpty>
+	</statement>
+
+	<statement id="addrmngt.selectAddrChk" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		/* [] addrmngt.selectAddrChk */
+		SELECT COUNT(*) AS CNT
+		  FROM FCA_ADDR
+		 WHERE 1=1
+	      AND ADDR_CD = #ADDR_CD#
+	</statement>
+
+	<statement id="addrmngt.insertAddr" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] addrmngt.insertAddr */
+		INSERT INTO FCA_ADDR
+		           (ADDR_CD
+		           ,ADDR
+		           ,ADDR_DIV)
+		     VALUES
+		           (
+		            #ADDR_CD#
+		           ,#ADDR#
+		           ,#ADDR_DIV#)
+	</statement>
+
+	<statement id="addrmngt.updateAddr" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] addrmngt.updateAddr */
+		UPDATE
+		       FCA_ADDR
+		   SET ADDR       = #ADDR#
+		      ,ADDR_DIV   = #ADDR_DIV#
+		 WHERE ADDR_CD = #ADDR_CD#
+	</statement>
+
+	<statement id="addrmngt.deleteAddr" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] addrmngt.deleteAddr */
+		DELETE
+		  FROM FCA_ADDR
+		 WHERE ADDR_CD = #ADDR_CD#
+	</statement>
+	
+	<statement id="addrmngt.getAddrConvPopupList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [AddrMngtController] addrmngt.getAddrConvPopupList */
+		       A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY ADDR_CD ) AS ROWNUM 
+					 , ADDR_CD, CI, GU, DN
+				     , CI + ' ' + GU + ' ' + DN AS CI_GU_DONG
+				  FROM FCA_ADDR_CONV
+				 WHERE 1 = 1
+			      <isNotEmpty property="DN">
+			      AND DN LIKE '%' + #DN# + '%'
+			      </isNotEmpty>
+				) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+	<statement id="addrmngt.getAddrConvPopupListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [AddrMngtController] addrmngt.getAddrConvPopupListCount */
+			   COUNT(*)
+		  FROM FCA_ADDR_CONV
+		 WHERE 1 = 1
+	      <isNotEmpty property="DN">
+	      AND DN LIKE '%' + #DN# + '%'
+	      </isNotEmpty>	
+	</statement>
+	
+	<statement id="addrmngt.getKwthAddrPopupList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [AddrMngtController] addrmngt.getKwthAddrPopupList */
+		       A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY KA.LOCAL_CODE ) AS ROWNUM 
+				     , KA.POINT_CODE, KA.LOCAL_CODE AS ADDR_CD, KA.LOCAL_AREA AS CI
+				     , KA.LOCAL_CITY AS GU, KA.LOCAL_DONG AS DN, KA.LOCAL_AREA + ' ' + KA.LOCAL_CITY + ' ' + KA.LOCAL_DONG AS CI_GU_DONG
+				  FROM FCA_KWTH_ADDR AS KA
+				 WHERE 1 = 1
+				   AND KA.LOCAL_DONG IS NOT NULL
+				   <isNotEmpty property="DN">
+				   AND KA.LOCAL_DONG LIKE '%' + #DN# + '%'
+				   </isNotEmpty>
+				) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM	
+	</statement>
+	<statement id="addrmngt.getKwthAddrPopupListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [AddrMngtController] addrmngt.getKwthAddrPopupListCount */
+			   COUNT(*)
+		  FROM FCA_KWTH_ADDR AS KA
+		 WHERE 1 = 1
+		   <isNotEmpty property="DN">
+		   AND KA.LOCAL_DONG LIKE '%' + #DN# + '%'
+		   </isNotEmpty>
+	</statement>
+	
+</sqlMap>

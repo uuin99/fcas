@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="authmngt">
+	<statement id="authmngt.getAuth" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [AuthMngtController] authmngt.getAuth */
+		       A.*
+		  FROM (
+		SELECT ROW_NUMBER() OVER(ORDER BY AUTH) AS ROWNUM
+		     , AUTH, AUTH_DESC, AUTH_TYPE, dbo.FN_CODE_NM('auth_type', AUTH_TYPE) AS AUTH_TYPE_DESC
+		     , REGI_ID, dbo.FN_USER_NM(REGI_ID) AS REGI_NM, CONVERT(VARCHAR, REGI_DT, 120) AS REGI_DT
+		     , UPDT_ID, dbo.FN_USER_NM(UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR, UPDT_DT, 120) AS UPDT_DT
+		  FROM FCA_AUTH
+		 WHERE 1 = 1
+		   <isNotEmpty property="AUTH">
+		   AND AUTH LIKE '%'+#AUTH#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="AUTH_TYPE">
+		   AND AUTH_TYPE = #AUTH_TYPE#
+		   </isNotEmpty>
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+	<statement id="authmngt.getAuthCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [AuthMngtController] authmngt.getAuthCount */
+		       COUNT(*) CNT
+		  FROM FCA_AUTH
+		 WHERE 1 = 1
+		   <isNotEmpty property="AUTH">
+		   AND AUTH LIKE '%'+#AUTH#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="AUTH_TYPE">
+		   AND AUTH_TYPE = #AUTH_TYPE#
+		   </isNotEmpty>
+	</statement>
+
+	<statement id="authmngt.getAuthList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT AUTH, AUTH_DESC, AUTH_TYPE, dbo.FN_CODE_NM('auth_type', AUTH_TYPE) AS AUTH_TYPE_DESC
+		  FROM FCA_AUTH
+		 WHERE 1 = 1
+	</statement>
+
+	<statement id="authmngt.insertAuth" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT INTO /* [AuthMngtController] authmngt.insertAuth */
+		      FCA_AUTH
+		      (AUTH, AUTH_DESC, AUTH_TYPE
+		     , REGI_ID, REGI_DT, UPDT_ID, UPDT_DT)
+		VALUES
+		      (dbo.FN_NULL(#AUTH#), #AUTH_DESC#, #AUTH_TYPE#
+		     , #USER_ID#, GETDATE(), #USER_ID#, GETDATE())
+	</statement>
+
+	<statement id="authmngt.updateAuth" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [AuthMngtController] authmngt.updateAuth */
+		       FCA_AUTH
+		   SET AUTH_DESC = #AUTH_DESC#
+		     , AUTH_TYPE = #AUTH_TYPE#
+		     , UPDT_ID   = #USER_ID#
+		     , UPDT_DT   = GETDATE()
+		 WHERE AUTH = #AUTH#
+	</statement>
+
+	<statement id="authmngt.deleteAuth" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [AuthMngtController] authmngt.deleteAuth */
+		  FROM FCA_AUTH
+		 WHERE AUTH = #AUTH#
+	</statement>
+	
+	<statement id="authmngt.getAuthDelValid" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT /* [AuthMngtController] authmngt.getAuthDelValid */
+			   CASE
+		        WHEN (SELECT COUNT(*) FROM FCA_AUTH_MENU FAM WHERE FAM.AUTH = FA.AUTH) > 0 THEN 'COM_ERR_0043' /*해당 권한에 메뉴가 존재합니다.*/
+		        WHEN (SELECT COUNT(*) FROM FCA_USER FU WHERE FU.AUTH = FA.AUTH) > 0 THEN 'COM_ERR_0046' /*해당 권한을 사용하는 사용자가 존재합니다.*/
+		        ELSE 'Y' END AS RSLT
+		  FROM FCA_AUTH AS FA
+		 WHERE AUTH = #AUTH#
+	</statement>
+</sqlMap>

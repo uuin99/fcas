@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="olnclsmngt">
+	
+	<statement id="olnclsmngt.selectOlnClsList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [OlnClsMngtController] olnclsmngt.getOlnClsList */
+		       A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY A.COMP_ID, A.SHOP_ID, A.CLS_SEQ) AS ROWNUM
+				     , A.COMP_ID, A.SHOP_ID, A.CLS_SEQ, A.CLS_SEQ AS CLS_SEQ_VIEW, A.CLS_TITLE, A.CLS_TYPE
+				     , A.QUST_CTS, A.FILE_UID, A.ASK_CTS, A.FINS_YN, A.CANC_YN
+				     , A.REGI_ID, DBO.FN_USER_NM(A.REGI_ID) AS REGI_NM, CONVERT(VARCHAR,A.REGI_DT,120) AS REGI_DT
+				     , A.UPDT_ID, DBO.FN_USER_NM(A.UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR,A.UPDT_DT,120) AS UPDT_DT
+				     , B.FILE_SEQ, B.FILE_NM, C.COMP_NM, D.SHOP_NM
+				     , CASE A.FINS_YN WHEN 'Y' THEN DBO.FN_USER_NM(A.UPDT_ID) ELSE '' END AS FINS_USER_NM
+				     , CASE A.FINS_YN WHEN 'Y' THEN CONVERT(VARCHAR,A.UPDT_DT,120) ELSE '' END AS FINS_DT
+				     , CASE A.FINS_YN WHEN 'Y' THEN A.ASK_CTS ELSE '' END AS FINS_ASK_CTS
+				  FROM FCA_OLN_CLS AS A
+				       INNER JOIN FCA_COMP AS C ON A.COMP_ID = C.COMP_ID
+				       INNER JOIN FCA_SHOP AS D ON A.COMP_ID = D.COMP_ID AND A.SHOP_ID = D.SHOP_ID
+				       LEFT OUTER JOIN fcalob.dbo.FCA_FILE_MAST AS B ON A.FILE_UID = B.FILE_UID AND 1 = B.FILE_SEQ
+				 WHERE 1 = 1
+				   <isNotEmpty property="COMP_ID">
+				   AND A.COMP_ID = #COMP_ID#
+				   </isNotEmpty>
+				   <isNotEmpty property="SHOP_ID">
+				   AND A.SHOP_ID = #SHOP_ID#
+				   </isNotEmpty>
+				   <isNotEmpty property="CLS_TYPE">
+				   AND A.CLS_TYPE = #CLS_TYPE#
+				   </isNotEmpty>
+				   <isNotEmpty property="FINS_YN">
+				   AND A.FINS_YN = #FINS_YN#
+				   </isNotEmpty>
+				   <isNotEmpty property="CANC_YN">
+				   AND A.CANC_YN = #CANC_YN#
+				   </isNotEmpty>				   
+				   <isNotEmpty property="REGI_DT_START">
+				   AND A.REGI_DT >= CONVERT(DateTime, #REGI_DT_START#)
+				   </isNotEmpty>
+				   <isNotEmpty property="REGI_DT_END"> 
+				   AND A.REGI_DT <![CDATA[<=]]> CONVERT(DateTime, #REGI_DT_END# + ' 23:59:59')
+				   </isNotEmpty>
+				   <!-- 문의자일경우에 적용해야할 Query -->
+				   <isEqual property="WIN_TYPE" compareValue="INQ">
+				   AND A.CANC_YN = 'N'
+				   </isEqual>
+				) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+	
+	<statement id="olnclsmngt.selectOlnClsListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [OlnClsMngtController] olnclsmngt.selectOlnClsListCount */
+		       COUNT(*)
+		  FROM FCA_OLN_CLS AS A
+		       INNER JOIN FCA_COMP AS C ON A.COMP_ID = C.COMP_ID
+		       INNER JOIN FCA_SHOP AS D ON A.COMP_ID = D.COMP_ID AND A.SHOP_ID = D.SHOP_ID
+		       LEFT OUTER JOIN fcalob.dbo.FCA_FILE_MAST AS B ON A.FILE_UID = B.FILE_UID AND 1 = B.FILE_SEQ
+		 WHERE 1 = 1
+		   <isNotEmpty property="COMP_ID">
+		   AND A.COMP_ID = #COMP_ID#
+		   </isNotEmpty>
+		   <isNotEmpty property="SHOP_ID">
+		   AND A.SHOP_ID = #SHOP_ID#
+		   </isNotEmpty>
+		   <isNotEmpty property="CLS_TYPE">
+		   AND A.CLS_TYPE = #CLS_TYPE#
+		   </isNotEmpty>
+		   <isNotEmpty property="FINS_YN">
+		   AND A.FINS_YN = #FINS_YN#
+		   </isNotEmpty>
+		   <isNotEmpty property="CANC_YN">
+		   AND A.CANC_YN = #CANC_YN#
+		   </isNotEmpty>		   
+		   <isNotEmpty property="REGI_DT_START">
+		   AND A.REGI_DT >= CONVERT(DateTime, #REGI_DT_START#)
+		   </isNotEmpty>
+		   <isNotEmpty property="REGI_DT_END"> 
+		   AND A.REGI_DT <![CDATA[<=]]> CONVERT(DateTime, #REGI_DT_END# + ' 23:59:59')
+		   </isNotEmpty>
+		   <!-- 문의자일경우에 적용해야할 Query -->
+		   <isEqual property="WIN_TYPE" compareValue="INQ">
+		   AND A.CANC_YN = 'N'
+		   </isEqual>	
+	</statement>
+	
+	<statement id="olnclsmngt.selectOlnCls" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [OlnClsMngtController] olnclsmngt.selectOlnCls */
+		       A.COMP_ID, A.SHOP_ID, A.CLS_SEQ, A.CLS_SEQ AS CLS_SEQ_VIEW, A.CLS_TITLE, A.CLS_TYPE, dbo.FN_CODE_NM('cls_type',A.CLS_TYPE) AS CLS_TYPE_NM
+		     , A.QUST_CTS, A.FILE_UID, A.ASK_CTS, A.FINS_YN, A.CANC_YN
+		     , A.REGI_ID, DBO.FN_USER_NM(A.REGI_ID) AS REGI_NM, CONVERT(VARCHAR,A.REGI_DT,120) AS REGI_DT
+		     , A.UPDT_ID, DBO.FN_USER_NM(A.UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR,A.UPDT_DT,120) AS UPDT_DT
+		     , dbo.FN_USER_INFO(A.REGI_ID, A.REGI_DT) AS REGI_INFO
+		     , dbo.FN_USER_INFO(A.UPDT_ID, A.UPDT_DT) AS UPDT_INFO
+		     , B.FILE_SEQ, B.FILE_NM, C.COMP_NM, D.SHOP_NM
+		     , CASE A.FINS_YN WHEN 'Y' THEN DBO.FN_USER_NM(A.UPDT_ID) ELSE '' END AS FINS_USER_NM
+		     , CASE A.FINS_YN WHEN 'Y' THEN CONVERT(VARCHAR,A.UPDT_DT,120) ELSE '' END AS FINS_DT
+		     , CASE A.FINS_YN WHEN 'Y' THEN dbo.FN_USER_INFO(A.UPDT_ID, A.UPDT_DT) ELSE '' END AS FINS_INFO
+		     , CASE A.FINS_YN WHEN 'Y' THEN A.ASK_CTS ELSE '' END AS FINS_ASK_CTS		     
+		  FROM FCA_OLN_CLS AS A
+		       INNER JOIN FCA_COMP AS C ON A.COMP_ID = C.COMP_ID
+		       INNER JOIN FCA_SHOP AS D ON A.COMP_ID = D.COMP_ID AND A.SHOP_ID = D.SHOP_ID
+		       LEFT OUTER JOIN fcalob.dbo.FCA_FILE_MAST AS B ON A.FILE_UID = B.FILE_UID AND 1 = B.FILE_SEQ
+		 WHERE 1 = 1
+		   AND A.COMP_ID = #COMP_ID#
+		   AND A.SHOP_ID = #SHOP_ID#
+		   AND A.CLS_SEQ = #CLS_SEQ#
+		   <!-- 문의자일경우에 적용해야할 Query -->
+		   <isEqual property="WIN_TYPE" compareValue="INQ">
+		   AND A.CANC_YN = 'N'
+		   </isEqual>
+	</statement>
+	
+	<statement id="olnclsmngt.selectOlnClsExcel" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+	    SELECT /* [OlnClsMngtController] olnclsmngt.selectOlnClsExcel */
+			       A.COMP_ID, A.SHOP_ID, A.CLS_SEQ, A.CLS_SEQ AS CLS_SEQ_VIEW, A.CLS_TITLE, A.CLS_TYPE, dbo.FN_CODE_NM('cls_type',A.CLS_TYPE) AS CLS_TYPE_NM
+			     , A.QUST_CTS, A.FILE_UID, A.ASK_CTS, A.FINS_YN, A.CANC_YN
+			     , A.REGI_ID, DBO.FN_USER_NM(A.REGI_ID) AS REGI_NM, CONVERT(VARCHAR,A.REGI_DT,120) AS REGI_DT
+			     , A.UPDT_ID, DBO.FN_USER_NM(A.UPDT_ID) AS UPDT_NM, ISNULL(CONVERT(VARCHAR,A.UPDT_DT,120),'') AS UPDT_DT
+			     , dbo.FN_USER_INFO(A.REGI_ID, A.REGI_DT) AS REGI_INFO
+			     , dbo.FN_USER_INFO(A.UPDT_ID, A.UPDT_DT) AS UPDT_INFO
+			     , B.FILE_SEQ, B.FILE_NM, C.COMP_NM, D.SHOP_NM
+			     , CASE A.FINS_YN WHEN 'Y' THEN DBO.FN_USER_NM(A.UPDT_ID) ELSE '' END AS FINS_USER_NM
+			     , CASE A.FINS_YN WHEN 'Y' THEN CONVERT(VARCHAR,A.UPDT_DT,120) ELSE '' END AS FINS_DT
+			     , CASE A.FINS_YN WHEN 'Y' THEN A.ASK_CTS ELSE '' END AS FINS_ASK_CTS		     
+			  FROM FCA_OLN_CLS AS A
+			       INNER JOIN FCA_COMP AS C ON A.COMP_ID = C.COMP_ID
+			       INNER JOIN FCA_SHOP AS D ON A.COMP_ID = D.COMP_ID AND A.SHOP_ID = D.SHOP_ID
+			       LEFT OUTER JOIN fcalob.dbo.FCA_FILE_MAST AS B ON A.FILE_UID = B.FILE_UID AND 1 = B.FILE_SEQ
+			 WHERE 1 = 1
+			   <isNotEmpty property="COMP_ID">
+			   AND A.COMP_ID = #COMP_ID#
+			   </isNotEmpty>
+			   <isNotEmpty property="SHOP_ID">
+			   AND A.SHOP_ID = #SHOP_ID#
+			   </isNotEmpty>
+			   <isNotEmpty property="CLS_TYPE">
+			   AND A.CLS_TYPE = #CLS_TYPE#
+			   </isNotEmpty>
+			   <isNotEmpty property="FINS_YN">
+			   AND A.FINS_YN = #FINS_YN#
+			   </isNotEmpty>
+			   <isNotEmpty property="CANC_YN">
+			   AND A.CANC_YN = #CANC_YN#
+			   </isNotEmpty>			   
+			   <isNotEmpty property="REGI_DT_START">
+			   AND A.REGI_DT >= CONVERT(DateTime, #REGI_DT_START#)
+			   </isNotEmpty>
+			   <isNotEmpty property="REGI_DT_END"> 
+			   AND A.REGI_DT <![CDATA[<=]]> CONVERT(DateTime, #REGI_DT_END# + ' 23:59:59')
+			   </isNotEmpty>
+			   <!-- 문의자일경우에 적용해야할 Query -->
+			   <isEqual property="WIN_TYPE" compareValue="INQ">
+			   AND A.CANC_YN = 'N'
+			   </isEqual>	
+	</statement>
+	
+	<statement id="olnclsmngt.insertOlnCls" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT /* [OlnClsMngtController] olnclsmngt.insertOrUpdateOlnCls */
+		  INTO FCA_OLN_CLS
+		  (COMP_ID, SHOP_ID, CLS_SEQ, CLS_TITLE, CLS_TYPE
+		  , QUST_CTS, FILE_UID, ASK_CTS, FINS_YN, CANC_YN
+		  , REGI_ID, REGI_DT)
+		VALUES
+		  (#COMP_ID#, #SHOP_ID#, #CLS_SEQ#, #CLS_TITLE#, #CLS_TYPE#
+		  , #QUST_CTS#, #FILE_UID#, #ASK_CTS#, #FINS_YN#, #CANC_YN#
+		  , #REGI_ID#, GETDATE())
+	</statement>		
+	
+	<statement id="olnclsmngt.updateOlnClsInq" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [OlnClsMngtController] olnclsmngt.UpdateOlnCls */
+		       FCA_OLN_CLS
+		   SET CLS_TITLE = #CLS_TITLE#
+		     , CLS_TYPE = #CLS_TYPE#
+		     , QUST_CTS = #QUST_CTS#
+		     , FILE_UID = #FILE_UID#
+		     , UPDT_ID = #UPDT_ID#
+		     , UPDT_DT = GETDATE()
+		 WHERE 1 = 1
+		   AND COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+		   AND CLS_SEQ = #CLS_SEQ#	
+	</statement>
+	
+	<statement id="olnclsmngt.deleteOlnClsInq" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [OlnClsMngtController] olnclsmngt.deleteOlnClsInq */
+		       FCA_OLN_CLS
+		   SET CANC_YN = 'Y'
+		     , UPDT_ID = #UPDT_ID#
+		     , UPDT_DT = GETDATE()
+		 WHERE 1 = 1
+		   AND COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+		   AND CLS_SEQ = #CLS_SEQ#
+	</statement>
+		
+	<statement id="olnclsmngt.updateOlnClsRep" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [OlnClsMngtController] olnclsmngt.updateOlnClsRep */
+		       FCA_OLN_CLS
+		   SET ASK_CTS = #ASK_CTS#
+		     , FINS_YN = #FINS_YN#
+		     , UPDT_ID = #UPDT_ID#
+		     , UPDT_DT = GETDATE()
+		 WHERE 1 = 1
+		   AND COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+		   AND CLS_SEQ = #CLS_SEQ#	
+	</statement>
+	
+	<statement id="olnclsmngt.getOlnClsSeqMaxPlus" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [OlnClsMngtController] olnclsmngt.getOlnClsSeqMaxPlus */
+			   ISNULL(MAX(CLS_SEQ),0) + 1
+		  FROM FCA_OLN_CLS
+		 WHERE 1 = 1
+		   AND COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#		  
+	</statement>
+	
+	<statement id="olnclsmngt.getOlnClsInqValid" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT /* [OlnClsMngtController] olnclsmngt.getOlnClsSeqMaxPlus */
+			   CASE 
+		        WHEN CANC_YN = 'Y' THEN 'COM_ERR_0031'
+		        WHEN FINS_YN = 'Y' THEN 'COM_ERR_0030'
+		        ELSE 'Y' END AS RST
+		  FROM FCA_OLN_CLS
+		 WHERE COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+		   AND CLS_SEQ = #CLS_SEQ#
+	</statement>	
+</sqlMap>
+

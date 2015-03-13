@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="eqipgrpmngt">
+	<statement id="eqipgrpmngt.getEqipGrpList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [] eqipgrpmngt.getEqipGrpList */
+		       A.*
+		  FROM (
+
+					SELECT  ROW_NUMBER() OVER(ORDER BY COMP_ID , SHOP_ID , DISP_ORDR) AS ROWNUM
+							,CMRA_GRP_ID
+							,COMP_ID
+							,SHOP_ID
+		                    , DBO.FN_COMP_NM( COMP_ID ) AS COMP_NM
+		                    , DBO.FN_SHOP_NM( COMP_ID , SHOP_ID ) AS SHOP_NM
+							,CMRA_GRP_NM
+							,DISP_ORDR
+							,TOTAL_YN
+							,REGI_ID, DBO.FN_USER_NM(REGI_ID) AS REGI_NM, CONVERT(VARCHAR, REGI_DT, 120) AS REGI_DT
+							,UPDT_ID, DBO.FN_USER_NM(UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR, UPDT_DT, 120) AS UPDT_DT
+ 					  FROM FCA_EQIP_GRP
+					 WHERE 1=1
+				       <isNotEmpty property="COMP_ID">
+				       AND COMP_ID = #COMP_ID#
+				       </isNotEmpty>
+				       <isNotEmpty property="SHOP_ID">
+				       AND SHOP_ID = #SHOP_ID#
+				       </isNotEmpty>
+				       <isNotEmpty property="CMRA_GRP_NM">
+				       AND CMRA_GRP_NM LIKE '%'+#CMRA_GRP_NM#+'%'
+				       </isNotEmpty>
+
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+
+	<statement id="eqipgrpmngt.getEqipGrpListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		/* [] eqipgrpmngt.getEqipGrpListCount */
+		SELECT COUNT(*) AS CNT
+		  FROM FCA_EQIP_GRP
+		 WHERE 1=1
+	       <isNotEmpty property="COMP_ID">
+	       AND COMP_ID = #COMP_ID#
+	       </isNotEmpty>
+	       <isNotEmpty property="SHOP_ID">
+	       AND SHOP_ID = #SHOP_ID#
+	       </isNotEmpty>
+	       <isNotEmpty property="CMRA_GRP_NM">
+	       AND CMRA_GRP_NM LIKE '%'+#CMRA_GRP_NM#+'%'
+	       </isNotEmpty>
+	</statement>
+
+
+	<statement id="eqipgrpmngt.insertEqipGrp" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] eqipgrpmngt.insertEqipGrp */
+		INSERT INTO FCA_EQIP_GRP
+		           (CMRA_GRP_ID
+		           ,COMP_ID
+		           ,SHOP_ID
+		           ,CMRA_GRP_NM
+		           ,DISP_ORDR
+		           ,TOTAL_YN
+		           ,FLOOR_DIV_ID
+		           ,FLOOR_YN
+		           ,REGI_ID
+		           ,REGI_DT
+		           ,UPDT_ID
+		           ,UPDT_DT)
+		     VALUES
+		           (#CMRA_GRP_ID#
+		           ,#COMP_ID#
+		           ,#SHOP_ID#
+		           ,#CMRA_GRP_NM#
+		           ,#DISP_ORDR#
+		           ,#TOTAL_YN#
+		           ,'01'
+		           ,'Y'
+		           ,#USER_ID#
+		           ,GETDATE()
+		           ,#USER_ID#
+		           ,GETDATE())
+	</statement>
+
+	<statement id="eqipgrpmngt.updateEqipGrp" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] eqipgrpmngt.updateEqipGrp */
+		UPDATE
+		       FCA_EQIP_GRP
+		   SET COMP_ID =       #COMP_ID#
+		      ,SHOP_ID =       #SHOP_ID#
+		      ,CMRA_GRP_NM =   #CMRA_GRP_NM#
+		      ,DISP_ORDR =     #DISP_ORDR#
+		      ,TOTAL_YN =      #TOTAL_YN#
+		      ,UPDT_ID =       #USER_ID#
+		      ,UPDT_DT =       GETDATE()
+		 WHERE CMRA_GRP_ID = #CMRA_GRP_ID#
+	</statement>
+
+	<statement id="eqipgrpmngt.deleteEqipGrp" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] eqipgrpmngt.deleteEqipGrp */
+		DELETE
+		  FROM FCA_EQIP_GRP
+		 WHERE CMRA_GRP_ID = #CMRA_GRP_ID#
+	</statement>
+
+
+	<statement id="eqipgrpmngt.selectFloorDivCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [] eqipgrpmngt.selectFloorDivCount */
+		       COUNT(*) CNT
+		  FROM FCA_FLOOR_DIV
+		 WHERE 1=1
+		   AND COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+		   AND FLOOR_DIV_ID = '01'
+	</statement>
+
+
+	<statement id="eqipgrpmngt.insertFloorDiv" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] eqipgrpmngt.insertFloorDiv */
+		INSERT INTO FCA_FLOOR_DIV
+		           (FLOOR_DIV_ID
+		           ,COMP_ID
+		           ,SHOP_ID
+		           ,FLOOR_DIV_NM
+		           ,DISP_ORDR
+		           ,REGI_ID
+		           ,REGI_DT
+		           ,UPDT_ID
+		           ,UPDT_DT)
+		     VALUES
+		           ('01'
+		           ,#COMP_ID#
+		           ,#SHOP_ID#
+		           ,'전체'
+		           ,'1'
+		           ,#USER_ID#
+		           ,GETDATE()
+		           ,#USER_ID#
+		           ,GETDATE())
+	</statement>
+
+
+	<statement id="eqipgrpmngt.selectDupCheckEqip" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		/* [] eqipgrpmngt.selectDupCheckEqip */
+		SELECT COUNT(*) AS CNT
+		  FROM FCA_EQIP
+		 WHERE CMRA_GRP_ID = #CMRA_GRP_ID#
+	</statement>
+
+	<statement id="eqipgrpmngt.deleteFloorDiv" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		/* [] eqipgrpmngt.deleteFloorDiv */
+		DELETE
+		  FROM FCA_FLOOR_DIV
+		 WHERE 1=1
+		   AND COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+		   AND FLOOR_DIV_ID = '01'
+	</statement>
+
+	<statement id="eqipgrpmngt.selectEqipGrpCnt" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		/* [] eqipgrpmngt.selectEqipGrpCnt */
+		SELECT COUNT(*) AS CNT
+		  FROM FCA_EQIP_GRP
+		 WHERE 1=1
+		   AND COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+		   AND FLOOR_DIV_ID = '01'
+	</statement>
+
+</sqlMap>

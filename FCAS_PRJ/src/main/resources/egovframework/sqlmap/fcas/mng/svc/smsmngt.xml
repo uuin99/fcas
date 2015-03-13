@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="smsmngt">
+	<statement id="smsmngt.getSmsSendList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [] smsmngt.getSmsSendList */
+		       A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY SI.SMS_SEQ DESC ) AS ROWNUM
+				     , SI.SMS_SEQ, SI.SMS_TO, SI.SMS_FROM
+				     , SI.SMS_DATE, SI.SMS_MSG, SI.SMS_TYPE
+				     , SI.RET_CODE, SI.RET_MSG, SI.RET_LAST_POINT
+				     , SI.BIZ_TYPE, dbo.FN_CODE_NM('sms_biz_type',SI.BIZ_TYPE) AS BIZ_TYPE_DESC, SI.SMS_TO_ID, SI.SMS_TO_NM
+				     , SI.REGI_ID, ISNULL(U.USER_NM, SI.REGI_ID) AS USER_NM, CONVERT(VARCHAR, SI.REGI_DT, 120) AS REGI_DT, CONVERT(VARCHAR, SI.SMS_EXEC_DT, 120) AS SMS_EXEC_DT
+				  FROM FCA_SMS_INFO AS SI
+				       LEFT OUTER JOIN FCA_USER AS U ON SI.REGI_ID = U.USER_ID
+				 WHERE 1 = 1
+				   <isNotEmpty property="REGI_ID">
+				   AND SI.REGI_ID = #REGI_ID#
+				   </isNotEmpty>
+				   <isNotEmpty property="REGI_DT_START">
+				   AND SI.REGI_DT >= CONVERT(DateTime, #REGI_DT_START#)
+				   </isNotEmpty>
+				   <isNotEmpty property="REGI_DT_END">
+				   AND SI.REGI_DT <![CDATA[<]]>= CONVERT(DateTime, #REGI_DT_END# + ' 23:59:59')
+				   </isNotEmpty>
+				   <isNotEmpty property="SMS_TO_NM">
+				   AND SI.SMS_TO_NM LIKE '%'+#SMS_TO_NM#+'%'
+				   </isNotEmpty>
+				   <isNotEmpty property="SMS_FROM">
+				   AND SI.SMS_FROM LIKE '%'+#SMS_FROM#+'%'
+				   </isNotEmpty>
+				   <isNotEmpty property="SMS_TO">
+				   AND SI.SMS_TO LIKE '%'+#SMS_TO#+'%'
+				   </isNotEmpty>		   
+				   <isNotEmpty property="SMS_DATE">
+				   AND SI.SMS_DATE LIKE '%'+#SMS_DATE#+'%'
+				   </isNotEmpty>
+				   <isNotEmpty property="SMS_MSG">
+				   AND SI.SMS_MSG LIKE '%'+#SMS_MSG#+'%'
+				   </isNotEmpty>				   
+				   <isNotEmpty property="BIZ_TYPE">
+				   AND SI.BIZ_TYPE = #BIZ_TYPE#
+				   </isNotEmpty>
+				   <isNotEmpty property="RET_CODE">
+				   AND SI.RET_CODE = #RET_CODE#
+				   </isNotEmpty>
+				) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+	<statement id="smsmngt.getSmsSendListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT COUNT(*)
+		  FROM FCA_SMS_INFO AS SI
+		       LEFT OUTER JOIN FCA_USER AS U ON SI.REGI_ID = U.USER_ID
+		 WHERE 1 = 1
+		   <isNotEmpty property="REGI_ID">
+		   AND SI.REGI_ID = #REGI_ID#
+		   </isNotEmpty>
+		   <isNotEmpty property="REGI_DT_START">
+		   AND SI.REGI_DT >= CONVERT(DateTime, #REGI_DT_START#)
+		   </isNotEmpty>
+		   <isNotEmpty property="REGI_DT_END">
+		   AND SI.REGI_DT <![CDATA[<]]>= CONVERT(DateTime, #REGI_DT_END# + ' 23:59:59')
+		   </isNotEmpty>
+		   <isNotEmpty property="SMS_TO_NM">
+		   AND SI.SMS_TO_NM LIKE '%'+#SMS_TO_NM#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="SMS_FROM">
+		   AND SI.SMS_FROM LIKE '%'+#SMS_FROM#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="SMS_TO">
+		   AND SI.SMS_TO LIKE '%'+#SMS_TO#+'%'
+		   </isNotEmpty>		   
+		   <isNotEmpty property="SMS_DATE">
+		   AND SI.SMS_DATE LIKE '%'+#SMS_DATE#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="SMS_MSG">
+		   AND SI.SMS_MSG LIKE '%'+#SMS_MSG#+'%'
+		   </isNotEmpty>				   
+		   <isNotEmpty property="BIZ_TYPE">
+		   AND SI.BIZ_TYPE = #BIZ_TYPE#
+		   </isNotEmpty>
+		   <isNotEmpty property="RET_CODE">
+		   AND SI.RET_CODE = #RET_CODE#
+		   </isNotEmpty>
+	</statement>
+	
+	<statement id="smsmngt.insertSmsInfo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT /* [] smsmngt.insertSmsInfo */
+		  INTO FCA_SMS_INFO
+		  (SMS_SEQ, SMS_TO, SMS_FROM
+		 , SMS_DATE, SMS_MSG, SMS_TYPE
+		 , RET_CODE, RET_MSG, RET_LAST_POINT
+		 , BIZ_TYPE, SMS_TO_ID, SMS_TO_NM
+		 , REGI_ID, REGI_DT, SMS_EXEC_DT)
+		  VALUES
+		  ((SELECT ISNULL((SELECT MAX(SMS_SEQ) FROM FCA_SMS_INFO), 0 ) + 1), #SMS_TO#, #SMS_FROM#
+		 , #SMS_DATE#, #SMS_MSG#, #SMS_TYPE#
+		 , #RET_CODE#, #RET_MSG#, #RET_LAST_POINT#
+		 , #BIZ_TYPE#, #SMS_TO_ID#, #SMS_TO_NM#
+		 , #REGI_ID#, GETDATE(), GETDATE())
+	</statement>
+
+	<statement id="smsmngt.getUserInfoList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [] smsmngt.getUserInfoList */
+		       A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY U.COMP_ID, U.SHOP_ID, U.USER_NM ) AS ROWNUM
+					 , U.USER_ID, U.COMP_ID, U.SHOP_ID
+				     , C.COMP_NM, S.SHOP_NM, U.LOGIN_ID
+				     , U.DEPT_NM, U.POSI_NM, U.USER_NM
+				     , U.CELL_NO
+				  FROM FCA_USER AS U
+				       INNER JOIN FCA_COMP AS C ON U.COMP_ID = C.COMP_ID
+				       INNER JOIN FCA_SHOP AS S ON U.COMP_ID = S.COMP_ID AND U.SHOP_ID = S.SHOP_ID
+				 WHERE 1 = 1
+				   AND U.USER_STAT = '20'
+				   <isNotEmpty property="COMP_ID">
+				   AND U.COMP_ID = #COMP_ID#
+				   </isNotEmpty>
+				   <isNotEmpty property="SHOP_ID">
+				   AND U.SHOP_ID = #SHOP_ID#
+				   </isNotEmpty>
+				   <isNotEmpty property="LOGIN_ID">
+				   AND U.LOGIN_ID LIKE '%'+#LOGIN_ID#+'%'
+				   </isNotEmpty>
+				   <isNotEmpty property="USER_NM">
+				   AND U.USER_NM LIKE '%'+#USER_NM#+'%'
+				   </isNotEmpty>
+				   <isNotEmpty property="AUTH">
+				   AND U.AUTH = #AUTH#
+				   </isNotEmpty>
+				   <isNotEmpty property="DEPT_NM">
+				   AND U.DEPT_NM LIKE '%'+#DEPT_NM#+'%'
+				   </isNotEmpty>
+				   <isNotEmpty property="POSI_NM">
+				   AND U.POSI_NM LIKE '%'+#POSI_NM#+'%'
+				   </isNotEmpty>
+				) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+	<statement id="smsmngt.getUserInfoListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT COUNT(*)
+		  FROM FCA_USER AS U
+		       INNER JOIN FCA_COMP AS C ON U.COMP_ID = C.COMP_ID
+		       INNER JOIN FCA_SHOP AS S ON U.COMP_ID = S.COMP_ID AND U.SHOP_ID = S.SHOP_ID
+		 WHERE 1 = 1
+		   AND U.USER_STAT = '20'
+		   <isNotEmpty property="COMP_ID">
+		   AND U.COMP_ID = #COMP_ID#
+		   </isNotEmpty>
+		   <isNotEmpty property="SHOP_ID">
+		   AND U.SHOP_ID = #SHOP_ID#
+		   </isNotEmpty>
+		   <isNotEmpty property="LOGIN_ID">
+		   AND U.LOGIN_ID LIKE '%'+#LOGIN_ID#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="USER_NM">
+		   AND U.USER_NM LIKE '%'+#USER_NM#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="AUTH">
+		   AND U.AUTH = #AUTH#
+		   </isNotEmpty>
+		   <isNotEmpty property="DEPT_NM">
+		   AND U.DEPT_NM LIKE '%'+#DEPT_NM#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="POSI_NM">
+		   AND U.POSI_NM LIKE '%'+#POSI_NM#+'%'
+		   </isNotEmpty>
+	</statement>
+	
+	<statement id="smsmngt.getSmsIdPass" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT  /* [] smsmngt.getSmsIdPass */
+				MAX(INFO.ID) AS ID, MAX(INFO.PASS) AS PASS
+			 , CASE WHEN #SMS_DATE# <![CDATA[<>]]> '0' AND DATEADD(MI,10, GETDATE()) >= CONVERT(DATETIME, #SMS_DATE#) THEN 'COM_ERR_0077' ELSE 'Y' END AS REV_TIME_VALID 
+		  FROM (SELECT CASE CD WHEN 'id' THEN cd_desc ELSE '' END AS ID
+		             , CASE CD WHEN 'pass' THEN cd_desc ELSE '' END AS PASS
+		          FROM FCA_CODE
+		         WHERE CD_TYPE = 'sms_info') AS INFO
+	</statement>	
+
+</sqlMap>
+

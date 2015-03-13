@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="salesinfomngt">
+	<statement id="salesinfomngt.getSalesInfo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [SalesInfoMngtController] salesinfomngt.getSalesInfo */
+		       A.DATE, SUBSTRING(DATENAME(DW,A.DATE),1,1) AS DAY
+		     , #COMP_ID# AS COMP_ID, #SHOP_ID# AS SHOP_ID, B.STND_DATE
+		     , B.WORK_YN, B.BUY_CS_CNT, B.SALES_AMT, C.EVNT_NM
+		     , B.REGI_ID, dbo.FN_USER_NM(B.REGI_ID) AS REGI_NM, CONVERT(VARCHAR, B.REGI_DT, 120) AS REGI_DT
+		     , B.UPDT_ID, dbo.FN_USER_NM(B.UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR, B.UPDT_DT, 120) AS UPDT_DT
+		  FROM (SELECT CONVERT(CHAR(8),DATEADD(D,NUMBER,#STND_DATE#+'01'),112) AS DATE
+		          FROM MASTER..SPT_VALUES
+		         WHERE TYPE = 'P'
+		           AND CONVERT(CHAR(6),DATEADD(D,NUMBER,#STND_DATE#+'01'),112) = #STND_DATE#) AS A
+		  LEFT OUTER JOIN FCA_SALES_INFO AS B
+		    ON A.DATE    = B.STND_DATE
+		   AND B.COMP_ID = #COMP_ID#
+		   AND B.SHOP_ID = #SHOP_ID#
+		   AND B.STND_DATE LIKE #STND_DATE#+'%'
+		  LEFT OUTER JOIN FCA_SHOP_EVNT AS C
+		    ON C.COMP_ID = #COMP_ID#
+		   AND C.SHOP_ID = #SHOP_ID#
+		   AND A.DATE BETWEEN C.EVNT_STRT_DATE AND C.EVNT_END_DATE
+		 WHERE 1 = 1
+		 ORDER BY DATE
+	</statement>
+
+	<statement id="salesinfomngt.getSalesInfoDetl" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [SalesInfoMngtController] salesinfomngt.getSalesInfoDetl */
+		       A.TIME
+		     , #COMP_ID# AS COMP_ID, #SHOP_ID# AS SHOP_ID, #STND_DATE# AS STND_DATE, B.TIME_CD
+		     , B.BUY_CS_CNT, B.SALES_AMT
+		     , B.REGI_ID, dbo.FN_USER_NM(B.REGI_ID) AS REGI_NM, CONVERT(VARCHAR, B.REGI_DT, 120) AS REGI_DT
+		     , B.UPDT_ID, dbo.FN_USER_NM(B.UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR, B.UPDT_DT, 120) AS UPDT_DT
+		  FROM (SELECT RIGHT('0'+CONVERT(VARCHAR(2),Z.ROWNUM),2) AS TIME
+		          FROM (SELECT ROW_NUMBER() OVER(ORDER BY CD) AS ROWNUM
+		                  FROM FCA_CODE) AS Z
+		         WHERE Z.ROWNUM <![CDATA[<=]]> 24) AS A
+		  LEFT OUTER JOIN FCA_SALES_INFO_DETL AS B
+		    ON A.TIME = B.TIME_CD
+		   AND B.COMP_ID = #COMP_ID#
+		   AND B.SHOP_ID = #SHOP_ID#
+		   AND B.STND_DATE = #STND_DATE#
+		 ORDER BY TIME
+	</statement>
+
+	<statement id="salesinfomngt.insertSalesInfo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT INTO /* [SalesInfoMngtController] salesinfomngt.insertSalesInfo */
+		      FCA_SALES_INFO
+		      (COMP_ID, SHOP_ID, STND_DATE, WORK_YN, BUY_CS_CNT, SALES_AMT
+		     , REGI_ID, REGI_DT, UPDT_ID, UPDT_DT)
+		VALUES
+		      (dbo.FN_NULL(#COMP_ID#), dbo.FN_NULL(#SHOP_ID#), dbo.FN_NULL(#STND_DATE#), #WORK_YN#, #BUY_CS_CNT#, #SALES_AMT#
+		     , #USER_ID#, GETDATE(), #USER_ID#, GETDATE())
+	</statement>
+
+	<statement id="salesinfomngt.insertSalesInfoDetl" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT INTO /* [SalesInfoMngtController] salesinfomngt.insertSalesInfoDetl */
+		      FCA_SALES_INFO_DETL
+		      (COMP_ID, SHOP_ID, STND_DATE, TIME_CD, BUY_CS_CNT, SALES_AMT
+		     , REGI_ID, REGI_DT, UPDT_ID, UPDT_DT)
+		VALUES
+		      (dbo.FN_NULL(#COMP_ID#), dbo.FN_NULL(#SHOP_ID#), dbo.FN_NULL(#STND_DATE#), dbo.FN_NULL(#TIME_CD#), #BUY_CS_CNT#, #SALES_AMT#
+		     , #USER_ID#, GETDATE(), #USER_ID#, GETDATE())
+	</statement>
+
+	<statement id="salesinfomngt.updateSalesInfo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [SalesInfoMngtController] salesinfomngt.updateSalesInfo */
+		       FCA_SALES_INFO
+		   SET WORK_YN    = #WORK_YN#
+		     , BUY_CS_CNT = #BUY_CS_CNT#
+		     , SALES_AMT  = #SALES_AMT#
+		     , UPDT_ID    = #USER_ID#
+		     , UPDT_DT    = GETDATE()
+		 WHERE COMP_ID   = #COMP_ID#
+		   AND SHOP_ID   = #SHOP_ID#
+		   AND STND_DATE = #STND_DATE#
+	</statement>
+
+	<statement id="salesinfomngt.updateSalesInfoCus" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [SalesInfoMngtController] salesinfomngt.updateSalesInfoCus */
+		       FCA_SALES_INFO
+		   SET WORK_YN    = #WORK_YN#
+		     , UPDT_ID    = #USER_ID#
+		     , UPDT_DT    = GETDATE()
+		 WHERE COMP_ID   = #COMP_ID#
+		   AND SHOP_ID   = #SHOP_ID#
+		   AND STND_DATE = #STND_DATE#
+	</statement>
+
+	<statement id="salesinfomngt.updateSalesInfoDetl" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [SalesInfoMngtController] salesinfomngt.updateSalesInfoDetl */
+		       FCA_SALES_INFO_DETL
+		   SET BUY_CS_CNT = #BUY_CS_CNT#
+		     , SALES_AMT  = #SALES_AMT#
+		     , UPDT_ID    = #USER_ID#
+		     , UPDT_DT    = GETDATE()
+		 WHERE COMP_ID   = #COMP_ID#
+		   AND SHOP_ID   = #SHOP_ID#
+		   AND STND_DATE = #STND_DATE#
+		   AND TIME_CD   = #TIME_CD#
+	</statement>
+
+
+	<statement id="salesinfomngt.selectSalesDetlSum" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [] salesinfomngt.selectSalesDetlSum */
+		        SUM(BUY_CS_CNT) AS SUM_BUY_CS_CNT
+		     ,  SUM(SALES_AMT)  AS SUM_SALES_AMT
+		  FROM FCA_SALES_INFO_DETL
+		 WHERE 1=1
+		   AND COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+	       AND STND_DATE = #STND_DATE#
+	</statement>
+
+	<statement id="salesinfomngt.selectSalesDetlCount" parameterClass="java.util.Map" resultClass="int">
+		SELECT /* [] salesinfomngt.selectSalesDetlCount */
+		        COUNT(*) AS CNT
+		  FROM FCA_SALES_INFO_DETL
+		 WHERE 1=1
+		   AND COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+	       AND STND_DATE = #STND_DATE#
+	</statement>
+
+
+	<statement id="salesinfomngt.deleteSalesInfo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [] salesinfomngt.deleteSalesInfo */
+		  FROM FCA_SALES_INFO
+		 WHERE 1=1
+		   AND COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+	       AND STND_DATE = #STND_DATE#
+	</statement>
+
+	<statement id="salesinfomngt.selectSalesWorkYnInfo" parameterClass="java.util.Map" resultClass="string">
+		SELECT /* [] salesinfomngt.selectSalesWorkYnInfo */
+		      WORK_YN
+		  FROM FCA_SALES_INFO
+		 WHERE 1=1
+		   AND COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+	       AND STND_DATE = #STND_DATE#
+	</statement>
+
+	<statement id="salesinfomngt.deleteSalesInfoDetlAll" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [] salesinfomngt.deleteSalesInfoDetlAll */
+		  FROM FCA_SALES_INFO_DETL
+		 WHERE 1=1
+		   AND COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+	       AND STND_DATE = #STND_DATE#
+	</statement>
+
+</sqlMap>

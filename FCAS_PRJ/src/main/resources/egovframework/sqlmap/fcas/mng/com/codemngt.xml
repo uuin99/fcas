@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="codemngt">
+	<statement id="codemngt.getCode" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [CodeMngtController] codemngt.getCode */
+		       A.*
+		  FROM (
+		SELECT ROW_NUMBER() OVER(ORDER BY CD_TYPE, DISP_ORDR, CD) AS ROWNUM
+		     , CD_TYPE, CD, CD_TYPE_DESC, CD_DESC, DISP_ORDR, UP_CD_TYPE, UP_CD, USE_YN
+		     , REGI_ID, dbo.FN_USER_NM(REGI_ID) AS REGI_NM, CONVERT(VARCHAR, REGI_DT, 120) AS REGI_DT
+		     , UPDT_ID, dbo.FN_USER_NM(UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR, UPDT_DT, 120) AS UPDT_DT
+		  FROM FCA_CODE
+		 WHERE 1 = 1
+		   <isNotEmpty property="CD_TYPE">
+		   AND CD_TYPE = #CD_TYPE#
+		   </isNotEmpty>
+		   <isNotEmpty property="CD">
+		   AND CD = #CD#
+		   </isNotEmpty>
+		   <isNotEmpty property="UP_CD_TYPE">
+		   AND UP_CD_TYPE = #UP_CD_TYPE#
+		   </isNotEmpty>
+		   <isNotEmpty property="UP_CD">
+		   AND UP_CD = #UP_CD#
+		   </isNotEmpty>
+		   <isNotEmpty property="CD_S">
+		   AND CD != #CD_S#
+		   </isNotEmpty>
+		   <isNotEmpty property="CD_TYPE_S">
+		   AND CD_TYPE LIKE '%'+#CD_TYPE_S#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="CD_TYPE_DESC">
+		   AND CD_TYPE_DESC LIKE '%'+#CD_TYPE_DESC#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="CD_DESC">
+		   AND CD_DESC LIKE '%'+#CD_DESC#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="USE_YN">
+		   AND USE_YN = #USE_YN#
+		   </isNotEmpty>
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+	
+	<statement id="codemngt.getCodeCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [CodeMngtController] codemngt.getCodeCount */
+		       COUNT(*) CNT
+		  FROM FCA_CODE
+		 WHERE 1 = 1
+		   <isNotEmpty property="CD_TYPE">
+		   AND CD_TYPE = #CD_TYPE#
+		   </isNotEmpty>
+		   <isNotEmpty property="CD">
+		   AND CD = #CD#
+		   </isNotEmpty>
+		   <isNotEmpty property="UP_CD_TYPE">
+		   AND UP_CD_TYPE = #UP_CD_TYPE#
+		   </isNotEmpty>
+		   <isNotEmpty property="UP_CD">
+		   AND UP_CD = #UP_CD#
+		   </isNotEmpty>
+		   <isNotEmpty property="CD_S">
+		   AND CD != #CD_S#
+		   </isNotEmpty>
+		   <isNotEmpty property="CD_TYPE_S">
+		   AND CD_TYPE LIKE '%'+#CD_TYPE_S#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="CD_TYPE_DESC">
+		   AND CD_TYPE_DESC LIKE '%'+#CD_TYPE_DESC#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="CD_DESC">
+		   AND CD_DESC LIKE '%'+#CD_DESC#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="USE_YN">
+		   AND USE_YN = #USE_YN#
+		   </isNotEmpty>
+	</statement>
+	
+	<statement id="codemngt.getUpCdTypeCnt" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [CodeMngtController] codemngt.getCdTypeCnt */
+		       COUNT(*) CNT
+		  FROM FCA_CODE
+		 WHERE CD_TYPE = #CD_TYPE#
+		   AND CD      = '0000'
+	</statement>
+	
+	<statement id="codemngt.insertCode" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT INTO /* [CodeMngtController] codemngt.insertCode */
+		      FCA_CODE
+		      (CD_TYPE, CD, CD_TYPE_DESC, CD_DESC, DISP_ORDR, UP_CD_TYPE, UP_CD, USE_YN
+		     , REGI_ID, REGI_DT, UPDT_ID, UPDT_DT)
+		VALUES
+		      (dbo.FN_NULL(#CD_TYPE#), dbo.FN_NULL(#CD#), dbo.FN_NULL(#CD_TYPE_DESC#), dbo.FN_NULL(#CD_DESC#), #DISP_ORDR#, #UP_CD_TYPE#, #UP_CD#, #USE_YN#
+		     , #USER_ID#, GETDATE(), #USER_ID#, GETDATE())
+	</statement>
+	
+	<statement id="codemngt.updateCode" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [CodeMngtController] codemngt.updateCode */
+		       FCA_CODE
+		   SET CD_TYPE_DESC = dbo.FN_NULL(#CD_TYPE_DESC#)
+		     , CD_DESC      = dbo.FN_NULL(#CD_DESC#)
+		     , DISP_ORDR    = #DISP_ORDR#
+		     , UP_CD_TYPE   = #UP_CD_TYPE#
+		     , UP_CD        = #UP_CD#
+		     , USE_YN       = #USE_YN#
+		     , UPDT_ID      = #USER_ID#
+		     , UPDT_DT      = GETDATE()
+		 WHERE CD_TYPE = #CD_TYPE#
+		   AND CD      = #CD#
+	</statement>
+	
+	<statement id="codemngt.deleteCode" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [CodeMngtController] codemngt.deleteCode */
+		  FROM FCA_CODE
+		 WHERE CD_TYPE = #CD_TYPE#
+		   AND CD      = #CD#
+	</statement>
+	
+	<statement id="codemngt.getCodeDelValid" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT /* [CodeMngtController] codemngt.getCodeDelValid */
+			   CASE
+		        WHEN FC1.CD = '0000' AND (SELECT COUNT(*) FROM FCA_CODE AS FC2 WHERE FC2.CD_TYPE = FC1.CD_TYPE AND CD <![CDATA[<>]]> '0000') > 0 THEN 'COM_ERR_0040' /*해당 코드 타입에 연결되어 있는 코드들이 존재합니다.*/
+		        WHEN FC1.CD = '0000' AND (SELECT COUNT(*) FROM FCA_CODE AS FC3 WHERE FC3.UP_CD_TYPE = FC1.CD_TYPE) > 0 THEN 'COM_ERR_0041' /*해당 코드 타입에 연결되어 있는 하위 코드 타입이 존재합니다.*/
+		        WHEN FC1.CD <![CDATA[<>]]> '0000' AND (SELECT COUNT(*) FROM FCA_CODE AS FC3 WHERE FC3.UP_CD_TYPE = FC1.CD_TYPE AND FC3.UP_CD = FC1.CD) > 0 THEN 'COM_ERR_0042' /*해당 코드에 연결되어 있는 하위 코드가 존재합니다.*/
+		        ELSE 'Y' END AS RSLT
+		  FROM FCA_CODE AS FC1
+		 WHERE CD_TYPE = #CD_TYPE#
+		   AND CD = #CD#
+	</statement>	
+</sqlMap>

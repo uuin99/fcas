@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="salesinforeport">
+	<typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+	<statement id="salesinforeport.selectTimeChart" parameterClass="java.util.Map" resultClass="egovMap">
+		SELECT /* [SalesInfoController] salesinforeport.selectTimeChart */
+		       A.TIME_CD
+		     , dbo.FN_CODE_NM('time_cd', A.TIME_CD) AS TIME_NM
+		     , ROUND(SUM(A.ENTER_CNT)/COUNT(A.STND_DATE),0) AS ENTER_CNT
+		     , ROUND(SUM(ISNULL(B.BUY_CS_CNT,0))/COUNT(A.STND_DATE),0) AS BUY_CS_CNT
+		     , ROUND(SUM(ISNULL(B.SALES_AMT,0))/COUNT(A.STND_DATE),0) AS SALES_AMT
+		  FROM FCA_TIMES_STATS_CNT AS A
+		  LEFT OUTER JOIN FCA_SALES_INFO_DETL AS B
+		    ON A.COMP_ID = B.COMP_ID
+		   AND A.SHOP_ID = B.SHOP_ID
+		   AND A.STND_DATE = B.STND_DATE
+		   AND A.TIME_CD = B.TIME_CD
+		 WHERE A.COMP_ID = #COMP_ID#
+		   AND A.SHOP_ID = #SHOP_ID#
+		   AND A.STND_DATE BETWEEN #STND_DATE_F# AND #STND_DATE_T#
+		   AND A.CMRA_GRP_ID = 'TT'
+   		   AND A.STND_DATE NOT IN (SELECT STND_DATE FROM FCA_SALES_INFO
+		                            WHERE COMP_ID = #COMP_ID#
+		                              AND SHOP_ID = #SHOP_ID#
+		                              AND STND_DATE BETWEEN #STND_DATE_F# AND #STND_DATE_T#
+		                              AND WORK_YN = 'Y')
+		 GROUP BY A.TIME_CD
+		 ORDER BY TIME_CD
+	</statement>
+	
+	<statement id="salesinforeport.selectDayChart" parameterClass="java.util.Map" resultClass="egovMap">
+		SELECT /* [SalesInfoController] salesinforeport.selectDayChart */
+		       SUBSTRING(A.STND_DATE,7,2)+'일' AS STND_DATE
+		     , SUM(A.ENTER_CNT) AS ENTER_CNT
+		     , SUM(ISNULL(B.BUY_CS_CNT,0)) AS BUY_CS_CNT
+		     , SUM(ISNULL(B.SALES_AMT,0)) AS SALES_AMT
+		  FROM FCA_DAILY_STATS_CNT AS A
+		  LEFT OUTER JOIN FCA_SALES_INFO AS B
+		    ON A.COMP_ID = B.COMP_ID
+		   AND A.SHOP_ID = B.SHOP_ID
+		   AND A.STND_DATE = B.STND_DATE
+		 WHERE A.COMP_ID = #COMP_ID#
+		   AND A.SHOP_ID = #SHOP_ID#
+		   AND A.STND_YYMM = #STND_YYMM#
+		   AND A.CMRA_GRP_ID = 'TT'
+		   AND A.STND_DATE NOT IN (SELECT STND_DATE FROM FCA_SALES_INFO
+		                            WHERE COMP_ID = #COMP_ID#
+		                              AND SHOP_ID = #SHOP_ID#
+		                              AND STND_DATE LIKE #STND_YYMM#+'%'
+		                              AND WORK_YN = 'Y')
+		 GROUP BY A.STND_DATE
+		 ORDER BY STND_DATE
+	</statement>
+	
+	<statement id="salesinforeport.selectDovChart" parameterClass="java.util.Map" resultClass="egovMap">
+		SELECT /* [SalesInfoController] salesinforeport.selectDovChart */
+		       A.DOV_CD
+		     , dbo.FN_CODE_NM('dov_cd', A.DOV_CD) AS DOV_NM
+		     , ROUND(SUM(A.ENTER_CNT)/COUNT(A.STND_DATE),0) AS ENTER_CNT
+		     , ROUND(SUM(ISNULL(B.BUY_CS_CNT,0))/COUNT(A.STND_DATE),0) AS BUY_CS_CNT
+		     , ROUND(SUM(ISNULL(B.SALES_AMT,0))/COUNT(A.STND_DATE),0) AS SALES_AMT
+		  FROM FCA_DAILY_STATS_CNT AS A
+		  LEFT OUTER JOIN FCA_SALES_INFO AS B
+		    ON A.COMP_ID = B.COMP_ID
+		   AND A.SHOP_ID = B.SHOP_ID
+		   AND A.STND_DATE = B.STND_DATE
+		 WHERE A.COMP_ID = #COMP_ID#
+		   AND A.SHOP_ID = #SHOP_ID#
+		   AND A.STND_DATE BETWEEN #STND_DATE_F# AND #STND_DATE_T#
+		   AND A.CMRA_GRP_ID = 'TT'
+		   AND A.STND_DATE NOT IN (SELECT STND_DATE FROM FCA_SALES_INFO
+		                            WHERE COMP_ID = #COMP_ID#
+		                              AND SHOP_ID = #SHOP_ID#
+		                              AND STND_DATE BETWEEN #STND_DATE_F# AND #STND_DATE_T#
+		                              AND WORK_YN = 'Y')
+		 GROUP BY A.DOV_CD
+		 ORDER BY DOV_CD
+	</statement>
+	
+	<statement id="salesinforeport.selectMonthChart" parameterClass="java.util.Map" resultClass="egovMap">
+		SELECT /* [SalesInfoController] salesinforeport.selectMonthChart */
+		       SUBSTRING(A.STND_YYMM,5,2)+'월' AS STND_YYMM
+		     , ROUND(SUM(A.ENTER_CNT)/COUNT(A.STND_DATE),0) AS ENTER_CNT
+		     , ROUND(SUM(ISNULL(B.BUY_CS_CNT,0))/COUNT(A.STND_DATE),0) AS BUY_CS_CNT
+		     , ROUND(SUM(ISNULL(B.SALES_AMT,0))/COUNT(A.STND_DATE),0) AS SALES_AMT
+		  FROM FCA_DAILY_STATS_CNT AS A
+		  LEFT OUTER JOIN FCA_SALES_INFO AS B
+		    ON A.COMP_ID = B.COMP_ID
+		   AND A.SHOP_ID = B.SHOP_ID
+		   AND A.STND_DATE = B.STND_DATE
+		 WHERE A.COMP_ID = #COMP_ID#
+		   AND A.SHOP_ID = #SHOP_ID#
+		   AND A.STND_YYMM LIKE #STND_YYYY#+'%'
+		   AND A.CMRA_GRP_ID = 'TT'
+		   AND A.STND_DATE NOT IN (SELECT STND_DATE FROM FCA_SALES_INFO
+		                            WHERE COMP_ID = #COMP_ID#
+		                              AND SHOP_ID = #SHOP_ID#
+		                              AND STND_DATE LIKE #STND_YYYY#+'%'
+		                              AND WORK_YN = 'Y')
+		 GROUP BY A.STND_YYMM
+		 ORDER BY STND_YYMM
+	</statement>
+	
+	<statement id="salesinforeport.selectTermChart" parameterClass="java.util.Map" resultClass="egovMap">
+		SELECT /* [SalesInfoController] salesinforeport.selectTermChart */
+		       SUM(ENTER_CNT1) AS ENTER_CNT1
+		     , SUM(BUY_CS_CNT1) AS BUY_CS_CNT1
+		     , SUM(SALES_AMT1) AS SALES_AMT1
+		     , SUM(ENTER_CNT2) AS ENTER_CNT2
+		     , SUM(BUY_CS_CNT2) AS BUY_CS_CNT2
+		     , SUM(SALES_AMT2) AS SALES_AMT2
+		     , (CASE WHEN SUM(ENTER_CNT1)=0 THEN 0 ELSE ROUND(SUM(SALES_AMT1)/SUM(ENTER_CNT1),0) END) AS ENTER_CNT_AMT1
+		     , (CASE WHEN SUM(BUY_CS_CNT1)=0 THEN 0 ELSE ROUND(SUM(SALES_AMT1)/SUM(BUY_CS_CNT1),0) END) AS BUY_CS_CNT_AMT1
+		     , (CASE WHEN SUM(ENTER_CNT2)=0 THEN 0 ELSE ROUND(SUM(SALES_AMT2)/SUM(ENTER_CNT2),0) END) AS ENTER_CNT_AMT2
+		     , (CASE WHEN SUM(BUY_CS_CNT2)=0 THEN 0 ELSE ROUND(SUM(SALES_AMT2)/SUM(BUY_CS_CNT2),0) END) AS BUY_CS_CNT_AMT2
+		     , (CASE WHEN SUM(ENTER_CNT1)=0 THEN 0 ELSE ROUND(SUM(BUY_CS_CNT1)/SUM(ENTER_CNT1)*100,0) END) AS BUY_RATE1
+		     , (CASE WHEN SUM(ENTER_CNT2)=0 THEN 0 ELSE ROUND(SUM(BUY_CS_CNT2)/SUM(ENTER_CNT2)*100,0) END) AS BUY_RATE2
+		  FROM (SELECT SUM(A.ENTER_CNT) AS ENTER_CNT1
+		             , SUM(B.BUY_CS_CNT) AS BUY_CS_CNT1
+		             , SUM(B.SALES_AMT) AS SALES_AMT1
+		             , 0 AS ENTER_CNT2
+		             , 0 AS BUY_CS_CNT2
+		             , 0 AS SALES_AMT2
+		          FROM FCA_DAILY_STATS_CNT AS A
+        		  LEFT OUTER JOIN FCA_SALES_INFO AS B
+        		    ON A.COMP_ID = B.COMP_ID
+        		   AND A.SHOP_ID = B.SHOP_ID
+        		   AND A.STND_DATE = B.STND_DATE
+        		 WHERE A.COMP_ID = #COMP_ID#
+        		   AND A.SHOP_ID = #SHOP_ID#
+        		   AND A.STND_DATE BETWEEN #STND_DATE_F1# AND #STND_DATE_T1#
+        		   AND A.CMRA_GRP_ID = 'TT'
+        		   AND A.STND_DATE NOT IN (SELECT STND_DATE FROM FCA_SALES_INFO
+        		                            WHERE COMP_ID = #COMP_ID#
+        		                              AND SHOP_ID = #SHOP_ID#
+        		                              AND STND_DATE BETWEEN #STND_DATE_F1# AND #STND_DATE_T1#
+        		                              AND WORK_YN = 'Y')
+		         UNION ALL
+		        SELECT 0 AS ENTER_CNT1
+		             , 0 AS BUY_CS_CNT1
+		             , 0 AS SALES_AMT1
+		             , SUM(A.ENTER_CNT) AS ENTER_CNT2
+		             , SUM(B.BUY_CS_CNT) AS BUY_CS_CNT2
+		             , SUM(B.SALES_AMT) AS SALES_AMT2
+		          FROM FCA_DAILY_STATS_CNT AS A
+        		  LEFT OUTER JOIN FCA_SALES_INFO AS B
+        		    ON A.COMP_ID = B.COMP_ID
+        		   AND A.SHOP_ID = B.SHOP_ID
+        		   AND A.STND_DATE = B.STND_DATE
+        		 WHERE A.COMP_ID = #COMP_ID#
+        		   AND A.SHOP_ID = #SHOP_ID#
+        		   AND A.STND_DATE BETWEEN #STND_DATE_F2# AND #STND_DATE_T2#
+        		   AND A.CMRA_GRP_ID = 'TT'
+        		   AND A.STND_DATE NOT IN (SELECT STND_DATE FROM FCA_SALES_INFO
+        		                            WHERE COMP_ID = #COMP_ID#
+        		                              AND SHOP_ID = #SHOP_ID#
+        		                              AND STND_DATE BETWEEN #STND_DATE_F2# AND #STND_DATE_T2#
+        		                              AND WORK_YN = 'Y')) AS Z
+	</statement>
+	
+	<statement id="salesinforeport.selectMonthResult" parameterClass="java.util.Map" resultClass="egovMap">
+		SELECT /* [SalesInfoController] salesinforeport.selectMonthResult */
+		       SUBSTRING(A.STND_DATE,7,2)+'일' AS STND_DATE
+		     , dbo.FN_CODE_NM('dov_cd', A.DOV_CD) AS DOV_NM
+		     , D.KWTH_STAT_CD
+		     , D.TEMP
+		     , ISNULL(E.SALES_AMT,0) AS SALES_AMT
+		     , A.ENTER_CNT
+		     , ISNULL(E.BUY_CS_CNT,0) AS BUY_CS_CNT
+		     , (CASE WHEN ISNULL(E.BUY_CS_CNT,0)=0 THEN 0 ELSE ROUND(ISNULL(E.SALES_AMT,0)/E.BUY_CS_CNT,0) END) AS BUY_CS_AMT
+		     , (CASE WHEN A.ENTER_CNT=0 THEN 0 ELSE ROUND(ISNULL(E.BUY_CS_CNT,0)/A.ENTER_CNT*100,0) END) AS BUY_CS_RATE
+		     , F.EVNT_NM
+		  FROM FCA_DAILY_STATS_CNT AS A
+		 INNER JOIN FCA_SHOP AS B
+		   ON A.COMP_ID = B.COMP_ID
+		  AND A.SHOP_ID = B.SHOP_ID
+		 INNER JOIN FCA_KWTH_ADDR AS C
+		   ON B.KWTH_ADDR_CODE = C.POINT_CODE
+		  LEFT OUTER JOIN FCA_KWTH_INFO AS D
+		    ON A.STND_DATE = D.STND_DATE
+		   AND C.POINT_CODE = D.POINT_CODE
+		   AND D.TIME_GRP = '02'
+		  LEFT OUTER JOIN FCA_SALES_INFO AS E
+		    ON A.COMP_ID = E.COMP_ID
+		   AND A.SHOP_ID = E.SHOP_ID
+		   AND A.STND_DATE = E.STND_DATE
+		  LEFT OUTER JOIN FCA_SHOP_EVNT AS F
+		    ON A.COMP_ID = F.COMP_ID
+		   AND A.SHOP_ID = F.SHOP_ID
+		   AND A.STND_DATE BETWEEN F.EVNT_STRT_DATE AND F.EVNT_END_DATE
+		 WHERE A.COMP_ID = #COMP_ID#
+		   AND A.SHOP_ID = #SHOP_ID#
+		   AND A.STND_YYMM = #STND_YYMM#
+		   AND A.CMRA_GRP_ID = 'TT'
+		   AND A.STND_DATE NOT IN (SELECT STND_DATE FROM FCA_SALES_INFO
+		                            WHERE COMP_ID = #COMP_ID#
+		                              AND SHOP_ID = #SHOP_ID#
+		                              AND STND_DATE LIKE #STND_YYMM#+'%'
+		                              AND WORK_YN = 'Y')
+		 ORDER BY STND_DATE
+	</statement>
+	
+	<statement id="salesinforeport.selectEvntResult" parameterClass="java.util.Map" resultClass="egovMap">
+		SELECT /* [SalesInfoController] salesinforeport.selectEvntResult */
+		       EVNT_NM
+		     , SUBSTRING(EVNT_STRT_DATE,3,2)+'/'+SUBSTRING(EVNT_STRT_DATE,5,2)+'/'+SUBSTRING(EVNT_STRT_DATE,7,2) AS EVNT_STRT_DATE
+		     , SUBSTRING(EVNT_END_DATE,3,2)+'/'+SUBSTRING(EVNT_END_DATE,5,2)+'/'+SUBSTRING(EVNT_END_DATE,7,2) AS EVNT_END_DATE
+		     , SUM(ISNULL(SALES_AMT,0)) AS SALES_AMT
+		     , SUM(ISNULL(ENTER_CNT,0)) AS ENTER_CNT
+		     , SUM(ISNULL(BUY_CS_CNT,0)) AS BUY_CS_CNT
+		     , (CASE WHEN SUM(ISNULL(BUY_CS_CNT,0))=0 THEN 0 ELSE ROUND(SUM(ISNULL(SALES_AMT,0))/SUM(ISNULL(BUY_CS_CNT,0)),0) END) AS BUY_CS_AMT
+		     , (CASE WHEN SUM(ISNULL(ENTER_CNT,0))=0 THEN 0 ELSE ROUND(SUM(ISNULL(BUY_CS_CNT,0))/SUM(ISNULL(ENTER_CNT,0))*100,0) END) AS BUY_CS_RATE
+		  FROM (SELECT A.EVNT_NO, A.EVNT_NM, A.EVNT_STRT_DATE, A.EVNT_END_DATE
+				     , SUM(ISNULL(B.SALES_AMT,0)) AS SALES_AMT
+				     , SUM(ISNULL(B.BUY_CS_CNT,0)) AS BUY_CS_CNT
+				     , 0 AS ENTER_CNT
+				  FROM FCA_SHOP_EVNT AS A
+				  LEFT OUTER JOIN FCA_SALES_INFO AS B
+				    ON A.COMP_ID = B.COMP_ID
+				   AND A.SHOP_ID = B.SHOP_ID
+				   AND B.STND_DATE BETWEEN A.EVNT_STRT_DATE AND A.EVNT_END_DATE
+				   AND B.WORK_YN = 'N'
+				 WHERE A.COMP_ID = #COMP_ID#
+				   AND A.SHOP_ID = #SHOP_ID#
+				   AND A.EVNT_STRT_DATE <![CDATA[>=]]> #STND_DATE_F#
+				   AND A.EVNT_END_DATE <![CDATA[<=]]> #STND_DATE_T#
+				 GROUP BY A.EVNT_NO, A.EVNT_NM, A.EVNT_STRT_DATE, A.EVNT_END_DATE
+				 UNION ALL
+				SELECT A.EVNT_NO, A.EVNT_NM, A.EVNT_STRT_DATE, A.EVNT_END_DATE
+				     , 0 AS SALES_AMT
+				     , 0 AS BUY_CS_CNT
+				     , SUM(ISNULL(B.ENTER_CNT,0)) AS ENTER_CNT
+				  FROM FCA_SHOP_EVNT AS A
+				  LEFT OUTER JOIN FCA_DAILY_STATS_CNT AS B
+				    ON A.COMP_ID = B.COMP_ID
+				   AND A.SHOP_ID = B.SHOP_ID
+				   AND B.STND_DATE BETWEEN A.EVNT_STRT_DATE AND A.EVNT_END_DATE
+				   AND B.CMRA_GRP_ID = 'TT'
+				   AND B.STND_DATE NOT IN (SELECT STND_DATE FROM FCA_SALES_INFO
+				                            WHERE COMP_ID = #COMP_ID#
+				                              AND SHOP_ID = #SHOP_ID#
+				                              AND STND_DATE BETWEEN #STND_DATE_F# AND #STND_DATE_T#
+				                              AND WORK_YN = 'Y')
+				 WHERE A.COMP_ID = #COMP_ID#
+				   AND A.SHOP_ID = #SHOP_ID#
+				   AND A.EVNT_STRT_DATE <![CDATA[>=]]> #STND_DATE_F#
+				   AND A.EVNT_END_DATE <![CDATA[<=]]> #STND_DATE_T#
+				 GROUP BY A.EVNT_NO, A.EVNT_NM, A.EVNT_STRT_DATE, A.EVNT_END_DATE) AS Z
+		 GROUP BY EVNT_NM, EVNT_STRT_DATE, EVNT_END_DATE
+		 ORDER BY EVNT_STRT_DATE, EVNT_END_DATE
+	</statement>
+</sqlMap>

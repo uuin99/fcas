@@ -1,0 +1,120 @@
+@charset "utf-8";
+/* CSS Document */
+
+/* common */
+body {
+    background-color:#ffffff;
+	font-size:12px; font-family:'Arial','sans-serif','맑은 고딕','굴림';line-height:17px;
+	margin:5px 0 0 30px; padding:0px; letter-spacing:-1px;
+}
+
+ul{
+list-style:none;
+padding: 0px;
+}
+
+ul li img {display: block; border:0;}
+
+.space01{height:10px;clear:both;}
+.space02{height:20px;clear:both;}
+.space03{height:30px;clear:both;}
+.space05{height:50px;clear:both;}
+.space06{height:65px;clear:both;}
+
+/* Layout */
+.contents{width:797px;}
+
+/* Location */
+.location{height:17px;float:right;padding-top:3px;}
+.location ul{margin:0;color:#a6a7a8;}
+.location ul li{display:inline;list-style-type:none;}
+.location a {font-size:11px;font-family:'돋움','Dotum';color:#a6a7a8; text-decoration:none;}
+.location a:hover, a:active {font-size:11px;font-family:'돋움','Dotum';color:#a6a7a8; text-decoration:underline;}
+
+/* 매장정보 */
+.store{background:url('../images/report/report_top.png') no-repeat;width:790px;height:60px;padding-top:9px;padding-left:15px;}
+.store .tb1_type, .store .tb1_type td .store .tb1_type th{border:0}
+.store .tb1_type{width:767px; table-layout:fixed;font-size:14px;color:#464646;}
+.store .tb1_type th{text-align:center}
+.store .tb1_type td{text-align:center}
+
+/* 파란색 타이틀 */
+.blue_title{width:797px;height:26px;background-image:url('../images/report/sub title_bg.png'); background-repeat:repeat-x;width:100%;}
+.blue_title ul {padding:0; margin:0;}
+.blue_title ul li{float:left; list-style-type:none; display:inline;}
+.blue_title .blue_text{
+	background:#fff; padding:3px 14px 0 8px;
+    font-size:17px; color:#2958a4; font-weight:bold;
+}
+
+/* 그래프 레이아웃 */
+.graph_all{display:block;clear:both;width:797px;}
+.graph_01{float:left;width:210px;}
+.graph_space01{float:left;width:40px;}
+.graph_02{float:right;width:547px;}
+
+.graph_03{float:left;width:797px;}
+
+.graph_04{float:left;width:280px;}
+.graph_05{float:right;width:477px;}
+
+/* 그래프 타이틀 */
+.grap_title{height:25px;}
+.grap_title ul {padding:0; margin:0;}
+.grap_title ul li{float:left; list-style-type:none; display:inline;}
+.grap_text{
+	float:left;
+	padding:4px 0 0 8px;
+    font-size:17px;color:#3c3c3c;font-weight:bold;
+	}
+.box_bg01{
+	display:block;clear:both;
+	width:280px;height:30px;background:#fff;border:1px solid #bebebe;
+	}
+.box_bg02{
+	display:block;clear:both;
+	width:477px;height:30px;background:#fff;border:1px solid #bebebe;
+	}
+.box_date{float:right;color:#707070;font-family:'돋움','Dotum';padding:7px 5px 0 0;}
+
+/* 설명박스 */
+.box{
+	position:relative;
+	padding:12px 5px 5px 5px;width:787px;height:58px;background:#fffecd;border:1px solid #c0cee5;
+	vertical-align:middle;
+    font-size:18px;color:#3c3c3c;font-weight:bold;line-height:25px;text-align:center;
+	}
+.box2{
+	position:relative;
+	padding:12px 5px 5px 5px;width:787px;height:85px;background:#fffecd;border:1px solid #c0cee5;
+	vertical-align:middle;
+    font-size:18px;color:#3c3c3c;font-weight:bold;line-height:25px;text-align:center;
+	}
+.text_em{color:#4374D9;}
+.text_em2{color:#FF2424;}
+
+/* 성별현황 테이블 */
+.graph_table01{margin:0 auto;width:170px;}
+.graph_table01 .state_01, .graph_table01 .state_01 td {border:0;}
+.graph_table01 .state_01{width:170px;table-layout:fixed;font-size:13px;color:#414141;font-weight:bold;}
+.graph_table01 .state_01 td{height:28px;}
+.graph_table01 .state_01 .text02{text-align:right;padding-right:5px;}
+.graph_table01 .state_01 .text01{padding-left:5px;}
+.graph_table01 .state_01 .line01{height:2px; border-bottom:2px solid #b9b9b9;}
+.graph_table01 .state_01 .dot01{height:2px; border-bottom:1px dotted #c6c6c6;}
+.graph_table01 .state_01 .line02{height:2px; border-bottom:1px solid #b9b9b9;}
+
+/* 연령대별현황 테이블 */
+.graph_table02{margin:0 auto;width:510px;}
+.graph_table02 .state_02, .graph_table02 .state_02 td {border:0;}
+.graph_table02 .state_02{width:510px;table-layout:fixed;font-size:13px;color:#414141;font-weight:bold;}
+.graph_table02 .state_02 td{height:28px;}
+.graph_table02 .state_02 th{height:28px;text-align:right;color:#0065c2;font-weight:bold;}
+.graph_table02 .state_02 .text02{text-align:right;padding-right:5px;}
+.graph_table02 .state_02 .text01{padding-left:5px;}
+.graph_table02 .state_02 .line01{height:2px; border-bottom:2px solid #b9b9b9;}
+.graph_table02 .state_02 .dot01{height:2px; border-bottom:1px dotted #c6c6c6;}
+.graph_table02 .state_02 .line02{height:2px; border-bottom:1px solid #b9b9b9;}
+
+/* 인쇄 */
+.print{width:785px;height:23px;text-align:right;padding-right:12px;}

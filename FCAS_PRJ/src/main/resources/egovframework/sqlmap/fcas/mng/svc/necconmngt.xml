@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="necconmngt">
+	<statement id="necconmngt.selectNecPrgsList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [NecConMngtController] necconmngt.selectNecPrgsList */
+		       A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY NP.EXEC_DATE DESC, NP.REQT_DATE, NP.COMP_ID, NP.SHOP_ID, NP.CMRA_GRP_ID, NP.CMRA_NO, NP.TRGT_TBL_NM) AS ROWNUM
+				     , dbo.FN_DATE_IN_DASH(NP.REQT_DATE) AS REQT_DATE, NP.CMRA_NO, E.CMRA_NM, NP.TRGT_TBL_NM, DBO.FN_CODE_NM('trgt_tbl_nm', NP.TRGT_TBL_NM) AS TRGT_TBL_DESC
+				     , NP.COMP_ID, CS.COMP_NM, NP.SHOP_ID, CS.SHOP_NM, NP.CMRA_GRP_ID
+				     , EG.CMRA_GRP_NM, CONVERT(VARCHAR,NP.EXEC_DATE,120) AS EXEC_DATE , NP.TOT_CNT, NP.PRGS_CNT, NP.STAT
+				     , DBO.FN_CODE_NM('nec_prgs_stat', NP.STAT) AS STAT_DESC, NP.ERR_DESC, '' AS CHK
+		             , CASE WHEN NA.CMRA_NO is null THEN 'N' ELSE 'Y' END NEC_APMT_FLAG
+		             , CASE WHEN NA.CMRA_NO is null THEN 'N' ELSE 'Y ('+dbo.FN_CODE_NM('nec_prgs_stat', NA.STAT)+')' END NEC_APMT_DESC, ISNULL(NA.STAT,'XX') AS NEC_APMRT_STAT
+				  FROM FCA_NEC_PRGS AS NP
+				  /*고객사_매장*/ LEFT OUTER JOIN (SELECT C.COMP_ID, C.COMP_NM, S.SHOP_ID, S.SHOP_NM
+				                                   FROM FCA_COMP AS C
+				                                  INNER JOIN FCA_SHOP AS S ON C.COMP_ID = S.COMP_ID) AS CS ON NP.COMP_ID = CS.COMP_ID AND  NP.SHOP_ID = CS.SHOP_ID
+				  /*카메라그룹*/LEFT OUTER JOIN FCA_EQIP_GRP AS EG ON NP.COMP_ID = EG.COMP_ID AND NP.SHOP_ID = EG.SHOP_ID AND NP.CMRA_GRP_ID = EG.CMRA_GRP_ID
+				  /*카메라*/LEFT OUTER JOIN FCA_EQIP AS E ON NP.CMRA_NO = E.CMRA_NO
+				  /*예약스케줄*/LEFT OUTER JOIN FCA_NEC_APMT AS NA ON NP.REQT_DATE = NA.REQT_DATE AND NP.CMRA_NO = NA.CMRA_NO AND NP.TRGT_TBL_NM = NA.TRGT_TBL_NM
+			     WHERE 1=1 
+			     <isNotEmpty property="COMP_ID">
+			       AND NP.COMP_ID = #COMP_ID#
+			     </isNotEmpty>
+			     <isNotEmpty property="SHOP_ID">
+			       AND NP.SHOP_ID = #SHOP_ID#
+			     </isNotEmpty>
+			     <isNotEmpty property="TRGT_TBL_NM">
+			       AND NP.TRGT_TBL_NM = #TRGT_TBL_NM#
+			     </isNotEmpty>
+			     <isNotEmpty property="REQT_DATE_START">
+			       AND NP.REQT_DATE >= #REQT_DATE_START#
+			     </isNotEmpty>
+			     <isNotEmpty property="REQT_DATE_END">
+			       AND NP.REQT_DATE <![CDATA[<=]]> #REQT_DATE_END#
+			     </isNotEmpty>
+			     <isNotEmpty property="STAT">
+			       AND NP.STAT = #STAT#
+			     </isNotEmpty>
+				 <isNotEmpty property="CMRA_NO">
+				   AND NP.CMRA_NO LIKE '%' + #CMRA_NO# + '%'
+				 </isNotEmpty>			     
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+	<statement id="necconmngt.selectNecPrgsListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		
+		SELECT /* [NecConMngtController] necconmngt.selectNecPrgsListCount */
+			   COUNT(*)
+		  FROM FCA_NEC_PRGS AS NP
+		  /*고객사_매장*/ LEFT OUTER JOIN (SELECT C.COMP_ID, C.COMP_NM, S.SHOP_ID, S.SHOP_NM
+		                                   FROM FCA_COMP AS C
+		                                  INNER JOIN FCA_SHOP AS S ON C.COMP_ID = S.COMP_ID) AS CS ON NP.COMP_ID = CS.COMP_ID AND  NP.SHOP_ID = CS.SHOP_ID
+		  /*카메라그룹*/LEFT OUTER JOIN FCA_EQIP_GRP AS EG ON NP.COMP_ID = EG.COMP_ID AND NP.SHOP_ID = EG.SHOP_ID AND NP.CMRA_GRP_ID = EG.CMRA_GRP_ID
+		  /*카메라*/LEFT OUTER JOIN FCA_EQIP AS E ON NP.CMRA_NO = E.CMRA_NO
+		  /*예약스케줄*/LEFT OUTER JOIN FCA_NEC_APMT AS NA ON NP.REQT_DATE = NA.REQT_DATE AND NP.CMRA_NO = NA.CMRA_NO AND NP.TRGT_TBL_NM = NA.TRGT_TBL_NM		  
+		 WHERE 1=1 
+	     <isNotEmpty property="COMP_ID">
+	       AND NP.COMP_ID = #COMP_ID#
+	     </isNotEmpty>
+	     <isNotEmpty property="SHOP_ID">
+	       AND NP.SHOP_ID = #SHOP_ID#
+	     </isNotEmpty>
+	     <isNotEmpty property="TRGT_TBL_NM">
+	       AND NP.TRGT_TBL_NM = #TRGT_TBL_NM#
+	     </isNotEmpty>
+	     <isNotEmpty property="REQT_DATE_START">
+	       AND NP.REQT_DATE >= #REQT_DATE_START#
+	     </isNotEmpty>
+	     <isNotEmpty property="REQT_DATE_END">
+	       AND NP.REQT_DATE <![CDATA[<=]]> #REQT_DATE_END#
+	     </isNotEmpty>	
+		 <isNotEmpty property="STAT">
+		   AND NP.STAT = #STAT#
+		 </isNotEmpty>
+		 <isNotEmpty property="CMRA_NO">
+		   AND NP.CMRA_NO LIKE '%' + #CMRA_NO# + '%'
+		 </isNotEmpty>		 
+	</statement>
+
+	<statement id="necconmngt.selectNecApmtMngtList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [NecConMngtController] necconmngt.selectNecApmtMngtList */
+		       A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY NA.REQT_DATE, NA.COMP_ID, NA.SHOP_ID, NA.CMRA_GRP_ID, NA.CMRA_NO) AS ROWNUM
+				     , NA.COMP_ID, C.COMP_NM, NA.SHOP_ID, S.SHOP_NM, NA.CMRA_GRP_ID
+				     , EG.CMRA_GRP_NM, NA.CMRA_NO, E.CMRA_NM, dbo.FN_DATE_IN_DASH(NA.REQT_DATE) AS REQT_DATE, NA.TRGT_TBL_NM
+				     , dbo.FN_CODE_NM('trgt_tbl_nm',NA.TRGT_TBL_NM) AS TRGT_TBL_DESC, CONVERT(VARCHAR, NA.EXEC_DATE, 120) AS EXEC_DATE, STAT, dbo.FN_CODE_NM('nec_prgs_stat', NA.STAT) AS STAT_DESC
+				  FROM FCA_NEC_APMT AS NA
+				       LEFT OUTER JOIN FCA_COMP AS C ON NA.COMP_ID = C.COMP_ID
+				       LEFT OUTER JOIN FCA_SHOP AS S ON NA.COMP_ID = S.COMP_ID AND NA.SHOP_ID = S.SHOP_ID
+				       LEFT OUTER JOIN FCA_EQIP AS E ON NA.CMRA_NO = E.CMRA_NO
+				       LEFT OUTER JOIN FCA_EQIP_GRP AS EG ON NA.COMP_ID = EG.COMP_ID AND NA.SHOP_ID = EG.SHOP_ID AND NA.CMRA_GRP_ID = EG.CMRA_GRP_ID
+				 WHERE 1 = 1
+				 <isNotEmpty property="COMP_ID">
+			       AND NA.COMP_ID = #COMP_ID#
+			     </isNotEmpty>
+			     <isNotEmpty property="SHOP_ID">
+			       AND NA.SHOP_ID = #SHOP_ID#
+			     </isNotEmpty>
+			     <isNotEmpty property="TRGT_TBL_NM">
+			       AND NA.TRGT_TBL_NM = #TRGT_TBL_NM#
+			     </isNotEmpty>
+			     <isNotEmpty property="REQT_DATE_START">
+			       AND NA.REQT_DATE >= #REQT_DATE_START#
+			     </isNotEmpty>
+			     <isNotEmpty property="REQT_DATE_END">
+			       AND NA.REQT_DATE <![CDATA[<=]]> #REQT_DATE_END#
+			     </isNotEmpty>	
+				 <isNotEmpty property="STAT">
+				   AND NA.STAT = #STAT#
+				 </isNotEmpty>
+				 <isNotEmpty property="CMRA_NO">
+				   AND NA.CMRA_NO LIKE '%' + #CMRA_NO# + '%'
+				 </isNotEmpty>
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+	<statement id="necconmngt.selectNecApmtMngtListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		
+		SELECT /* [NecConMngtController] necconmngt.selectNecApmtMngtListCount */
+			   COUNT(*)
+		  FROM FCA_NEC_APMT AS NA
+		       LEFT OUTER JOIN FCA_COMP AS C ON NA.COMP_ID = C.COMP_ID
+		       LEFT OUTER JOIN FCA_SHOP AS S ON NA.COMP_ID = S.COMP_ID AND NA.SHOP_ID = S.SHOP_ID
+		       LEFT OUTER JOIN FCA_EQIP AS E ON NA.CMRA_NO = E.CMRA_NO
+		       LEFT OUTER JOIN FCA_EQIP_GRP AS EG ON NA.COMP_ID = EG.COMP_ID AND NA.SHOP_ID = EG.SHOP_ID AND NA.CMRA_GRP_ID = EG.CMRA_GRP_ID
+		 WHERE 1 = 1
+		 <isNotEmpty property="COMP_ID">
+	       AND NA.COMP_ID = #COMP_ID#
+	     </isNotEmpty>
+	     <isNotEmpty property="SHOP_ID">
+	       AND NA.SHOP_ID = #SHOP_ID#
+	     </isNotEmpty>
+	     <isNotEmpty property="TRGT_TBL_NM">
+	       AND NA.TRGT_TBL_NM = #TRGT_TBL_NM#
+	     </isNotEmpty>
+	     <isNotEmpty property="REQT_DATE_START">
+	       AND NA.REQT_DATE >= #REQT_DATE_START#
+	     </isNotEmpty>
+	     <isNotEmpty property="REQT_DATE_END">
+	       AND NA.REQT_DATE <![CDATA[<=]]> #REQT_DATE_END#
+	     </isNotEmpty>	
+		 <isNotEmpty property="STAT">
+		   AND NA.STAT = #STAT#
+		 </isNotEmpty>
+		 <isNotEmpty property="CMRA_NO">
+		   AND NA.CMRA_NO LIKE '%' + #CMRA_NO# + '%'
+		 </isNotEmpty>
+	</statement>
+	
+	<statement id="necconmngt.selectNecApmtMngt" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [NecConMngtController] necconmngt.selectNecApmtMngt */
+			   NA.COMP_ID, C.COMP_NM, NA.SHOP_ID, S.SHOP_NM, NA.CMRA_GRP_ID
+		     , EG.CMRA_GRP_NM, NA.CMRA_NO, E.CMRA_NM, dbo.FN_DATE_IN_DASH(NA.REQT_DATE) AS REQT_DATE, NA.TRGT_TBL_NM
+		     , dbo.FN_CODE_NM('trgt_tbl_nm',NA.TRGT_TBL_NM) AS TRGT_TBL_DESC, CONVERT(VARCHAR, NA.EXEC_DATE, 120) AS EXEC_DATE, STAT, dbo.FN_CODE_NM('nec_prgs_stat', NA.STAT) AS STAT_DESC
+		  FROM FCA_NEC_APMT AS NA
+		       LEFT OUTER JOIN FCA_COMP AS C ON NA.COMP_ID = C.COMP_ID
+		       LEFT OUTER JOIN FCA_SHOP AS S ON NA.COMP_ID = S.COMP_ID AND NA.SHOP_ID = S.SHOP_ID
+		       LEFT OUTER JOIN FCA_EQIP AS E ON NA.CMRA_NO = E.CMRA_NO
+		       LEFT OUTER JOIN FCA_EQIP_GRP AS EG ON NA.COMP_ID = EG.COMP_ID AND NA.SHOP_ID = EG.SHOP_ID AND NA.CMRA_GRP_ID = EG.CMRA_GRP_ID
+		 WHERE 1 = 1
+		   AND NA.COMP_ID = #COMP_ID#
+		   AND NA.SHOP_ID = #SHOP_ID#
+		   AND NA.CMRA_NO = #CMRA_NO#
+		   AND NA.REQT_DATE = REPLACE(#REQT_DATE#, '-', '')
+		   AND NA.TRGT_TBL_NM = #TRGT_TBL_NM# 					 
+	</statement>	
+	
+	<statement id="necconmngt.selectNecApmtCnt" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [NecConMngtController] necconmngt.selectNecApmtCnt */
+			   COUNT(*)
+		 WHERE COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+		   AND CMRA_NO = #CMRA_NO#
+		   AND REQT_DATE = REPLACE(#REQT_DATE#, '-', '')
+		   AND TRGT_TBL_NM = #TRGT_TBL_NM# 	
+	</statement>	
+	
+	<statement id="necconmngt.insertNecApmt" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT /* [NecConMngtController] necconmngt.insertNecApmt */ 
+		  INTO FCA_NEC_APMT
+		  ( COMP_ID, SHOP_ID, CMRA_NO
+		  , REQT_DATE, TRGT_TBL_NM, CMRA_GRP_ID
+		  , EXEC_DATE, STAT)
+		VALUES
+		  ( #COMP_ID#, #SHOP_ID#, #CMRA_NO#
+		  , REPLACE(#REQT_DATE#,'-',''), #TRGT_TBL_NM#, #CMRA_GRP_ID#
+		  , null, '01')	
+	</statement>
+	
+	<statement id="necconmngt.updateNecApmt" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [NecConMngtController] necconmngt.updateNecApmt */
+			   FCA_NEC_APMT
+		   SET CMRA_GRP_ID = (SELECT CMRA_GRP_ID FROM FCA_EQIP WHERE COMP_ID = #COMP_ID# AND SHOP_ID = #SHOP_ID# AND CMRA_NO = #CMRA_NO#)
+		     , EXEC_DATE = null
+		     , STAT = '01'
+		 WHERE COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+		   AND CMRA_NO = #CMRA_NO#
+		   AND REQT_DATE = REPLACE(#REQT_DATE#, '-', '')
+		   AND TRGT_TBL_NM = #TRGT_TBL_NM# 	
+	</statement>	
+	
+	<statement id="necconmngt.deleteNecApmt" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [NecConMngtController] necconmngt.selectNecApmtMngtListCount */
+			   FCA_NEC_APMT
+ 		 WHERE COMP_ID = #COMP_ID#
+		   AND SHOP_ID = #SHOP_ID#
+		   AND CMRA_NO = #CMRA_NO#
+		   AND REQT_DATE = REPLACE(#REQT_DATE#, '-', '')
+		   AND TRGT_TBL_NM = #TRGT_TBL_NM#		
+	</statement>	
+
+	<statement id="necconmngt.selectNecApmtValid" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT  /* [NecConMngtController] necconmngt.selectNecApmtValid */
+		        CASE 
+		          WHEN (SELECT COUNT(*) FROM FCA_NEC_APMT AS NA WHERE NA.COMP_ID = NP.COMP_ID AND NA.SHOP_ID = NP.SHOP_ID AND NA.CMRA_NO = NP.CMRA_NO AND NA.REQT_DATE = NP.REQT_DATE AND NA.TRGT_TBL_NM = NP.TRGT_TBL_NM) > 0 THEN 'COM_ERR_0064'
+		          WHEN NP.STAT IN ('01','02') THEN 'COM_ERR_0070'
+		          ELSE 'Y' 
+		          END AS RSLT
+		  FROM FCA_NEC_PRGS AS NP
+		 WHERE NP.REQT_DATE = REPLACE(#REQT_DATE#,'-','')
+		   AND NP.CMRA_NO = #CMRA_NO#
+		   AND NP.TRGT_TBL_NM = #TRGT_TBL_NM#	
+	</statement>	
+	
+	<statement id="necconmngt.selectNecApmtRegiValid" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT /* [NecConMngtController] necconmngt.selectNecApmtRegiValid */
+			   CASE 
+		        WHEN COUNT(*) = 1 AND #STAT# = '' THEN 'COM_ERR_0064'
+		        WHEN COUNT(*) = 0 AND (SELECT NP.STAT FROM FCA_NEC_PRGS AS NP WHERE NP.REQT_DATE = MAX(NA.REQT_DATE) AND NP.CMRA_NO = MAX(NA.CMRA_NO) AND NP.TRGT_TBL_NM = MAX(NA.TRGT_TBL_NM)) IN ('01', '02') THEN 'COM_ERR_0070'
+		        WHEN COUNT(*) = 0 AND (CONVERT(DATE, CONVERT(VARCHAR, GETDATE(), 112)) <![CDATA[<=]]> CONVERT(DATE, #REQT_DATE#)) THEN 'COM_ERR_0071'
+		        WHEN COUNT(*) = 1 AND MAX(NA.STAT) = '01' THEN 'COM_ERR_0072'
+		        WHEN COUNT(*) = 1 AND MAX(NA.STAT) = '02' THEN 'COM_ERR_0073'
+		        WHEN COUNT(*) = 0 THEN 'NO_DATA'
+		        WHEN COUNT(*) = 1 THEN 'IN_DATA'
+		        ELSE 'COM_ERR_0065' END
+		  FROM FCA_NEC_APMT AS NA
+		 WHERE 1 = 1
+		   AND NA.COMP_ID = #COMP_ID#
+		   AND NA.SHOP_ID = #SHOP_ID#
+		   AND NA.CMRA_NO = #CMRA_NO#
+		   AND NA.REQT_DATE = REPLACE(#REQT_DATE#,'-','')
+		   AND NA.TRGT_TBL_NM = #TRGT_TBL_NM#
+	</statement>	
+	
+	<statement id="necconmngt.selectNecApmtDelValid" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT /* [NecConMngtController] necconmngt.selectNecApmtDelValid */
+		       CASE
+		        WHEN STAT = '02' THEN 'COM_ERR_0068'
+		        WHEN STAT = '99' THEN 'COM_ERR_0069'
+		        ELSE 'Y' END AS RSLT
+		  FROM FCA_NEC_APMT AS NA
+		 WHERE 1 = 1
+		   AND NA.COMP_ID = #COMP_ID#
+		   AND NA.SHOP_ID = #SHOP_ID#
+		   AND NA.CMRA_NO = #CMRA_NO#
+		   AND NA.REQT_DATE = REPLACE(#REQT_DATE#,'-','')
+		   AND NA.TRGT_TBL_NM = #TRGT_TBL_NM#
+	</statement>	
+	
+<statement id="necconmngt.selectNecLogMngtPrgsList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [NecConMngtController] necconmngt.selectNecLogMngtPrgsList */
+		       A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY NL.LOG_DATE, NL.LOG_SEQ ) AS ROWNUM
+				     , dbo.FN_DATE_IN_DASH(NL.LOG_DATE) AS LOG_DATE, NL.LOG_SEQ, dbo.FN_DATE_IN_DASH(NL.REQT_DATE) AS REQT_DATE, NL.CMRA_NO, E.CMRA_NM
+				     , NL.TRGT_TBL_NM, dbo.FN_CODE_NM('trgt_tbl_nm', NL.TRGT_TBL_NM) AS TRGT_TBL_NM_DESC, NL.COMP_ID, C.COMP_NM, NL.SHOP_ID
+				     , S.SHOP_NM, NL.CMRA_GRP_ID, EG.CMRA_GRP_NM, NL.LOG_TYPE, dbo.FN_CODE_NM('log_type',NL.LOG_TYPE) AS LOG_TYPE_DESC
+				     , NL.ERR_DESC
+				  FROM FCA_NEC_LOG AS NL
+				       LEFT OUTER JOIN FCA_COMP AS C ON NL.COMP_ID = C.COMP_ID
+				       LEFT OUTER JOIN FCA_SHOP AS S ON NL.COMP_ID = S.COMP_ID AND NL.SHOP_ID = S.SHOP_ID
+				       LEFT OUTER JOIN FCA_EQIP AS E ON NL.CMRA_NO = E.CMRA_NO
+				       LEFT OUTER JOIN FCA_EQIP_GRP AS EG ON NL.COMP_ID = EG.COMP_ID AND NL.SHOP_ID = EG.SHOP_ID AND NL.CMRA_GRP_ID = EG.CMRA_GRP_ID
+				 WHERE 1 = 1
+				   <isNotEmpty property="LOG_DATE_START">
+				   AND NL.LOG_DATE >= #LOG_DATE_START#
+				   </isNotEmpty>
+				   <isNotEmpty property="LOG_DATE_END">
+				   AND NL.LOG_DATE <![CDATA[<=]]> #LOG_DATE_END#
+				   </isNotEmpty>
+				   <isNotEmpty property="REQT_DATE_START"> 
+				   AND NL.REQT_DATE >= #REQT_DATE_START#
+				   </isNotEmpty>
+				   <isNotEmpty property="REQT_DATE_END">
+				   AND NL.REQT_DATE <![CDATA[<=]]> #REQT_DATE_END#
+				   </isNotEmpty>
+				   <isNotEmpty property="CMRA_NO">
+				   AND NL.CMRA_NO = #CMRA_NO#
+				   </isNotEmpty>
+				   <isNotEmpty property="COMP_ID">
+				   AND NL.COMP_ID = #COMP_ID#
+				   </isNotEmpty>
+				   <isNotEmpty property="SHOP_ID">
+				   AND NL.SHOP_ID = #SHOP_ID#
+				   </isNotEmpty>
+				   <isNotEmpty property="CMRA_GRP_ID">
+				   AND NL.CMRA_GRP_ID = #CMRA_GRP_ID#
+				   </isNotEmpty>
+				   <isNotEmpty property="LOG_TYPE">
+				   AND NL.LOG_TYPE = #LOG_TYPE#
+				   </isNotEmpty>
+				   <isNotEmpty property="LOG_DATE">
+				   AND NL.LOG_DATE = #LOG_DATE#
+				   </isNotEmpty>
+				   <isNotEmpty property="LOG_SEQ">
+				   AND NL.LOG_SEQ = #LOG_SEQ#
+				   </isNotEmpty>
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+	<statement id="necconmngt.selectNecLogMngtPrgsListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+			SELECT /* [NecConMngtController] necconmngt.selectNecLogMngtPrgsListCount */
+			       COUNT(*)
+			  FROM FCA_NEC_LOG AS NL
+			       LEFT OUTER JOIN FCA_COMP AS C ON NL.COMP_ID = C.COMP_ID
+			       LEFT OUTER JOIN FCA_SHOP AS S ON NL.COMP_ID = S.COMP_ID AND NL.SHOP_ID = S.SHOP_ID
+			       LEFT OUTER JOIN FCA_EQIP AS E ON NL.CMRA_NO = E.CMRA_NO
+			       LEFT OUTER JOIN FCA_EQIP_GRP AS EG ON NL.COMP_ID = EG.COMP_ID AND NL.SHOP_ID = EG.SHOP_ID AND NL.CMRA_GRP_ID = EG.CMRA_GRP_ID
+			 WHERE 1 = 1
+			   <isNotEmpty property="LOG_DATE_START">
+			   AND NL.LOG_DATE >= #LOG_DATE_START#
+			   </isNotEmpty>
+			   <isNotEmpty property="LOG_DATE_END">
+			   AND NL.LOG_DATE <![CDATA[<=]]> #LOG_DATE_END#
+			   </isNotEmpty>
+			   <isNotEmpty property="REQT_DATE_START"> 
+			   AND NL.REQT_DATE >= #REQT_DATE_START#
+			   </isNotEmpty>
+			   <isNotEmpty property="REQT_DATE_END">
+			   AND NL.REQT_DATE <![CDATA[<=]]> #REQT_DATE_END#
+			   </isNotEmpty>
+			   <isNotEmpty property="CMRA_NO">
+			   AND NL.CMRA_NO = #CMRA_NO#
+			   </isNotEmpty>
+			   <isNotEmpty property="COMP_ID">
+			   AND NL.COMP_ID = #COMP_ID#
+			   </isNotEmpty>
+			   <isNotEmpty property="SHOP_ID">
+			   AND NL.SHOP_ID = #SHOP_ID#
+			   </isNotEmpty>
+			   <isNotEmpty property="CMRA_GRP_ID">
+			   AND NL.CMRA_GRP_ID = #CMRA_GRP_ID#
+			   </isNotEmpty>
+			   <isNotEmpty property="LOG_TYPE">
+			   AND NL.LOG_TYPE = #LOG_TYPE#
+			   </isNotEmpty>
+			   <isNotEmpty property="LOG_DATE">
+			   AND NL.LOG_DATE = #LOG_DATE#
+			   </isNotEmpty>
+			   <isNotEmpty property="LOG_SEQ">
+			   AND NL.LOG_SEQ = #LOG_SEQ#
+			   </isNotEmpty> 
+	</statement>	
+	
+</sqlMap>

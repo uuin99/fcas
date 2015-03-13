@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--   
+These sample beans are from Spring ref manual  
+http://static.springsource.org/spring/docs/current/reference/scheduling.html#scheduling-quartz  
+-->  
+<beans xmlns="http://www.springframework.org/schema/beans"          
+	   xmlns:context="http://www.springframework.org/schema/context"          
+	   xmlns:util="http://www.springframework.org/schema/util"          
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"          
+	   xsi:schemaLocation="          
+	   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd          
+	   http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd          
+	   http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">  
+
+    <bean id="arriveSmslJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="SmsScheduling" />
+		<property name="targetMethod" value="runSmsBatch" />
+		<property name="concurrent" value="false" />
+    </bean>
+    
+    <bean id="arriveNecRawSampleJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="SmsScheduling" />
+		<property name="targetMethod" value="runMakeNecRawSample" />
+		<property name="concurrent" value="false" />
+    </bean>
+    
+    <bean id="testTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+        <property name="jobDetail" ref="arriveSmslJob" />
+        <!-- 시스템 로딩후 20초후 시작 -->
+        <property name="startDelay" value="20000" />
+        <!-- 10분마다 실행  -->
+        <property name="repeatInterval" value="600000" />
+    </bean> 
+
+    <bean id="necRawSampleTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+        <property name="jobDetail" ref="arriveNecRawSampleJob" />
+        <!--매일 오전7시에 실행(cron과 유사)-->
+        <property name="cronExpression" value="0 0 7 * * ?" />
+    </bean> 
+    
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean" autowire="no">
+        <property name="triggers">
+            <list>
+                <ref bean="testTrigger" />
+                <ref bean="necRawSampleTrigger" />
+            </list>
+        </property>
+        <property name="quartzProperties">
+            <props>
+                <prop key="org.quartz.threadPool.class">org.quartz.simpl.SimpleThreadPool</prop>
+                <prop key="org.quartz.threadPool.threadCount">5</prop>
+                <prop key="org.quartz.threadPool.threadPriority">4</prop>
+                <prop key="org.quartz.jobStore.class">org.quartz.simpl.RAMJobStore</prop>
+                <prop key="org.quartz.jobStore.misfireThreshold">60000</prop>
+            </props>
+        </property>     
+    </bean>
+	
+</beans>

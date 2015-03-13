@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<gubun>
+	<rpt1>
+<rexdataset>
+  <rexrow>
+    <enterCnt1>42970</enterCnt1>
+    <buyCsCnt1>13420</buyCsCnt1>
+    <salesAmt1>87400</salesAmt1>
+    <enterCnt2>64901</enterCnt2>
+    <buyCsCnt2>15356</buyCsCnt2>
+    <salesAmt2>92300</salesAmt2>
+    <enterCntAmt1>2</enterCntAmt1>
+    <buyCsCntAmt1>8</buyCsCntAmt1>
+    <enterCntAmt2>2</enterCntAmt2>
+    <buyCsCntAmt2>6</buyCsCntAmt2>
+    <buyRate1>31</buyRate1>
+    <buyRate2>34</buyRate2>
+  </rexrow>
+</rexdataset>
+	</rpt1>
+</gubun>

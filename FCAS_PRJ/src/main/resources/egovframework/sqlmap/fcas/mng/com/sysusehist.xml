@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="sysusehist">
+	<statement id="sysusehist.selectHistList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [SysUseHistController] sysusehist.selectHistList */
+		       Q.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY A.HIST_DT DESC, USER_NM) AS ROWNUM
+				     , B.COMP_ID, D.COMP_NM, B.SHOP_ID, C.SHOP_NM
+				     , B.USER_ID, B.USER_NM, B.DEPT_NM, B.POSI_NM
+				     , A.HIST_TYPE, CD1.CD_DESC AS HIST_TYPE_DESC, E.PROG_NM, A.EVNT_TYPE, CD2.CD_DESC AS EVNT_TYPE_DESC, A.SRCH_DETL
+				     , A.ACES_IP, CONVERT(VARCHAR, A.HIST_DT, 120) AS HIST_DT
+				     , A.LOGIN_ID
+				  FROM FCA_HIST AS A
+				       /*사용자*/ INNER JOIN FCA_USER AS B ON A.USER_ID = B.USER_ID 
+				       /*고객사*/ LEFT OUTER JOIN FCA_COMP AS D ON B.COMP_ID = D.COMP_ID 
+				       /*매장*/ LEFT OUTER JOIN FCA_SHOP AS C ON B.COMP_ID = C.COMP_ID AND B.SHOP_ID = C.SHOP_ID 
+				       /*프로그램*/ LEFT OUTER JOIN FCA_PROG AS E ON A.PROG_ID = E.PROG_ID 
+				       /*CODE1 - HIST_TYPE*/ INNER JOIN FCA_CODE AS CD1 ON CD1.CD_TYPE = 'hist_type' AND CD1.CD = A.HIST_TYPE
+				       /*CODE2 - EVNT_TYPE*/ LEFT OUTER JOIN FCA_CODE AS CD2 ON CD2.CD_TYPE = 'evnt_type' AND CD2.CD = A.EVNT_TYPE 
+				 WHERE 1 = 1
+				   <isNotEmpty property="HIST_DT_START">
+				   AND A.HIST_DT >= CONVERT(DateTime, #HIST_DT_START#) /*접근일 Start*/
+				   </isNotEmpty>
+				   <isNotEmpty property='HIST_DT_END'>
+				   AND A.HIST_DT <![CDATA[<]]>= CONVERT(DateTime, #HIST_DT_END# + ' 23:59:59') /*접근일 End*/
+				   </isNotEmpty>
+				   <isNotEmpty property='COMP_ID'>
+				   AND B.COMP_ID = #COMP_ID# /*업체명*/
+				   </isNotEmpty>
+				   <isNotEmpty property="SHOP_ID">				   
+				   AND B.SHOP_ID = #SHOP_ID# /*매장명*/
+				   </isNotEmpty>
+				   <isNotEmpty property="USER_NM">				   
+				   AND B.USER_NM LIKE '%' + #USER_NM# + '%' /*사용자*/
+				   </isNotEmpty>
+				   <isNotEmpty property="DEPT_NM">				   
+				   AND B.DEPT_NM LIKE '%' + #DEPT_NM# + '%' /*부서*/
+				   </isNotEmpty>
+				   <isNotEmpty property="POSI_NM">				   
+				   AND B.POSI_NM LIKE '%' + #POSI_NM# + '%' /*직책*/
+				   </isNotEmpty>
+				   <isNotEmpty property="HIST_TYPE">				   
+				   AND A.HIST_TYPE = #HIST_TYPE# /*이력유형*/
+				   </isNotEmpty>
+				   <isNotEmpty property="PROG_NM">				   
+				   AND E.PROG_NM LIKE '%' + #PROG_NM# + '%' /*화면명*/
+				   </isNotEmpty>
+				   <isNotEmpty property="EVNT_TYPE">				   
+				   AND A.EVNT_TYPE = #EVNT_TYPE# /*이벤트 유형*/
+				   </isNotEmpty>
+				   <isNotEmpty property="USER_NM1">				   
+				   AND B.USER_NM LIKE '%' + #USER_NM1# + '%' /*접근자*/
+				   </isNotEmpty>
+		) AS Q
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+	
+	<statement id="sysusehist.selectHistListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [SysUseHistController] sysusehist.selectHistListCount */
+			   COUNT(*)
+		  FROM FCA_HIST AS A
+		       /*사용자*/ INNER JOIN FCA_USER AS B ON A.USER_ID = B.USER_ID 
+		       /*고객사*/ LEFT OUTER JOIN FCA_COMP AS D ON B.COMP_ID = D.COMP_ID 
+		       /*매장*/ LEFT OUTER JOIN FCA_SHOP AS C ON B.COMP_ID = C.COMP_ID AND B.SHOP_ID = C.SHOP_ID 
+		       /*프로그램*/ LEFT OUTER JOIN FCA_PROG AS E ON A.PROG_ID = E.PROG_ID 
+		       /*CODE1 - HIST_TYPE*/ INNER JOIN FCA_CODE AS CD1 ON CD1.CD_TYPE = 'hist_type' AND CD1.CD = A.HIST_TYPE
+		       /*CODE2 - EVNT_TYPE*/ LEFT OUTER JOIN FCA_CODE AS CD2 ON CD2.CD_TYPE = 'evnt_type' AND CD2.CD = A.EVNT_TYPE		       
+		 WHERE 1 = 1
+		   <isNotEmpty property="HIST_DT_START">
+		   AND A.HIST_DT >= CONVERT(DateTime, #HIST_DT_START#) /*접근일 Start*/
+		   </isNotEmpty>
+		   <isNotEmpty property='HIST_DT_END'>
+		   AND A.HIST_DT <![CDATA[<]]>= CONVERT(DateTime, #HIST_DT_END# + ' 23:59:59') /*접근일 End*/
+		   </isNotEmpty>
+		   <isNotEmpty property='COMP_ID'>
+		   AND B.COMP_ID = #COMP_ID# /*업체명*/
+		   </isNotEmpty>
+		   <isNotEmpty property="SHOP_ID">				   
+		   AND B.SHOP_ID = #SHOP_ID# /*매장명*/
+		   </isNotEmpty>
+		   <isNotEmpty property="USER_NM">				   
+		   AND B.USER_NM LIKE '%' + #USER_NM# + '%' /*사용자*/
+		   </isNotEmpty>
+		   <isNotEmpty property="DEPT_NM">				   
+		   AND B.DEPT_NM LIKE '%' + #DEPT_NM# + '%' /*부서*/
+		   </isNotEmpty>
+		   <isNotEmpty property="POSI_NM">				   
+		   AND B.POSI_NM LIKE '%' + #POSI_NM# + '%' /*직책*/
+		   </isNotEmpty>
+		   <isNotEmpty property="HIST_TYPE">				   
+		   AND A.HIST_TYPE = #HIST_TYPE# /*이력유형*/
+		   </isNotEmpty>
+		   <isNotEmpty property="PROG_NM">				   
+		   AND E.PROG_NM LIKE '%' + #PROG_NM# + '%' /*화면명*/
+		   </isNotEmpty>
+		   <isNotEmpty property="EVNT_TYPE">				   
+		   AND A.EVNT_TYPE = #EVNT_TYPE# /*이벤트 유형*/
+		   </isNotEmpty>
+		   <isNotEmpty property="USER_NM1">				   
+		   AND B.USER_NM LIKE '%' + #USER_NM1# + '%' /*접근자*/
+		   </isNotEmpty>
+	</statement>
+</sqlMap>

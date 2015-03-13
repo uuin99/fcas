@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="compmngt">
+	<statement id="compmngt.getCompList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [CompMngtController] compmngt.getCompList */
+		       A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY COMP_NM) AS ROWNUM
+				     , COMP_ID, COMP_TYPE, COMP_DIV, COMP_NM, COMP_REGI_NO
+				     , TAX_NO, ADDR1, ADDR1_CD, ADDR2, MAST_NM
+				     , BIZ_TYPE, BIZ_ITEM, CUST_MNG_NM, CUST_MAIL_ID, CUST_MAIL_DOMAIN
+				     , CUST_CELL_NO, CUST_OFIC_NO, CUST_OFIC_FAX, CLNT_CODE, RMRK
+				     , REGI_ID, DBO.FN_USER_NM(REGI_ID) AS REGI_NM, CONVERT(VARCHAR,REGI_DT,120) AS REGI_DT
+				     , UPDT_ID, DBO.FN_USER_NM(UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR,UPDT_DT,120) AS UPDT_DT
+					 , SUBSTRING(TAX_NO,1,3) + '-' + SUBSTRING(TAX_NO,4,2) + '-' + SUBSTRING(TAX_NO,6,5) AS TAX_NO_VIEW
+					 , CASE CUST_MAIL_ID WHEN NULL THEN '' WHEN '' THEN '' ELSE CUST_MAIL_ID + '@' + CUST_MAIL_DOMAIN END AS CUST_MAIL_INFO
+				  FROM FCA_COMP
+				 WHERE 1 = 1
+				   <isNotEmpty property="COMP_ID">
+				   AND COMP_ID LIKE #COMP_ID#
+				   </isNotEmpty>				 
+				   <isNotEmpty property="COMP_NM">
+				   AND COMP_NM LIKE '%'+ #COMP_NM# + '%'
+				   </isNotEmpty>
+				   <isNotEmpty property="TAX_NO">
+				   AND TAX_NO LIKE '%'+ REPLACE(#TAX_NO#,'-','') + '%'
+				   </isNotEmpty>
+				   <isNotEmpty property="MAST_NM">
+				   AND MAST_NM LIKE '%'+ #MAST_NM# + '%'
+				   </isNotEmpty>
+				   <isNotEmpty property="CUST_MNG_NM">
+				   AND CUST_MNG_NM LIKE '%'+ #CUST_MNG_NM# + '%'
+  				   </isNotEmpty>
+				) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+
+	<statement id="compmngt.getCompListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		/* [CompMngtController] compmngt.getCompListCount */
+		SELECT COUNT(*) AS CNT
+		  FROM FCA_COMP
+		 WHERE 1 = 1
+		   <isNotEmpty property="COMP_ID">
+		   AND COMP_ID LIKE #COMP_ID#
+		   </isNotEmpty>		 
+   		   <isNotEmpty property="COMP_NM">
+		   AND COMP_NM LIKE '%'+ #COMP_NM# + '%'
+		   </isNotEmpty>
+		   <isNotEmpty property="TAX_NO">
+		   AND TAX_NO LIKE '%'+ REPLACE(#TAX_NO#,'-','') + '%'
+		   </isNotEmpty>
+		   <isNotEmpty property="MAST_NM">
+		   AND MAST_NM LIKE '%'+ #MAST_NM# + '%'
+		   </isNotEmpty>
+		   <isNotEmpty property="CUST_MNG_NM">
+		   AND CUST_MNG_NM LIKE '%'+ #CUST_MNG_NM# + '%'
+		   </isNotEmpty>
+	</statement>
+
+	<statement id="compmngt.getComp" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [CompMngtController] compmngt.getComp */
+			   A.COMP_ID, A.COMP_TYPE, A.COMP_DIV, A.COMP_NM, A.COMP_REGI_NO
+		     , A.TAX_NO, A.ADDR1, A.ADDR1_CD, A.ADDR2, A.MAST_NM
+		     , A.BIZ_TYPE, A.BIZ_ITEM, A.CUST_MNG_NM, A.CUST_MAIL_ID, A.CUST_MAIL_DOMAIN
+		     , A.CUST_CELL_NO, A.CUST_OFIC_NO, A.CUST_OFIC_FAX, A.CLNT_CODE, A.RMRK
+		     , A.REGI_ID, DBO.FN_USER_NM(A.REGI_ID) AS REGI_NM, CONVERT(VARCHAR,A.REGI_DT,120) AS REGI_DT
+		     , A.UPDT_ID, DBO.FN_USER_NM(A.UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR,A.UPDT_DT,120) AS UPDT_DT
+		     , dbo.FN_USER_INFO(A.REGI_ID, A.REGI_DT) AS REGI_INFO
+		     , dbo.FN_USER_INFO(A.UPDT_ID, A.UPDT_DT) AS UPDT_INFO
+			 , SUBSTRING(A.TAX_NO,1,3) AS F_TAX_NO
+		     , SUBSTRING(A.TAX_NO,4,2) AS M_TAX_NO
+		     , SUBSTRING(A.TAX_NO,6,5) AS L_TAX_NO
+			 , SUBSTRING(A.COMP_REGI_NO,1,6) AS F_COMP_REGI_NO
+		     , SUBSTRING(A.COMP_REGI_NO,7,7) AS L_COMP_REGI_NO
+		     , A.FILE_UID, B.FILE_SEQ, B.FILE_NM
+		  FROM FCA_COMP AS A
+		  	   LEFT OUTER JOIN fcalob.dbo.FCA_FILE_MAST AS B ON A.FILE_UID = B.FILE_UID AND 1 = B.FILE_SEQ 
+		 WHERE 1 = 1
+		   AND A.COMP_ID LIKE #COMP_ID#
+	</statement>
+
+	<statement id="compmngt.insertComp" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT /* [CompMngtController] compmngt.insertComp */
+		  INTO FCA_COMP
+		     ( COMP_ID, COMP_TYPE, COMP_DIV, COMP_NM, COMP_REGI_NO
+		     , TAX_NO, ADDR1, ADDR1_CD, ADDR2, MAST_NM
+		     , BIZ_TYPE, BIZ_ITEM, CUST_MNG_NM, CUST_MAIL_ID, CUST_MAIL_DOMAIN
+		     , CUST_CELL_NO, CUST_OFIC_NO, CUST_OFIC_FAX, CLNT_CODE, RMRK
+		     , REGI_ID, REGI_DT, UPDT_ID, UPDT_DT
+		     , FILE_UID)
+		  VALUES 
+		     ( #COMP_ID#, #COMP_TYPE#, #COMP_DIV#, #COMP_NM#, #COMP_REGI_NO#
+		     , #TAX_NO#, #ADDR1#, #ADDR1_CD#, #ADDR2#, #MAST_NM#
+		     , #BIZ_TYPE#, #BIZ_ITEM#, #CUST_MNG_NM#, #CUST_MAIL_ID#, #CUST_MAIL_DOMAIN#
+		     , #CUST_CELL_NO#, #CUST_OFIC_NO#, #CUST_OFIC_FAX#, #CLNT_CODE#, #RMRK#
+		     , #REGI_ID#, GETDATE(), #UPDT_ID#, GETDATE()
+		     , #FILE_UID#)
+	</statement>
+
+	<statement id="compmngt.updateComp" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [CompMngtController] compmngt.updateComp */
+		       FCA_COMP
+		   SET COMP_TYPE        = #COMP_TYPE#
+		     , COMP_DIV         = #COMP_DIV#
+		     , COMP_NM          = #COMP_NM#
+		     , COMP_REGI_NO     = #COMP_REGI_NO#
+		     , TAX_NO           = #TAX_NO#
+		     , ADDR1            = #ADDR1#
+		     , ADDR1_CD         = #ADDR1_CD#
+		     , ADDR2            = #ADDR2#
+		     , MAST_NM          = #MAST_NM#
+		     , BIZ_TYPE         = #BIZ_TYPE#
+		     , BIZ_ITEM         = #BIZ_ITEM#
+		     , CUST_MNG_NM      = #CUST_MNG_NM#
+		     , CUST_MAIL_ID     = #CUST_MAIL_ID#
+		     , CUST_MAIL_DOMAIN = #CUST_MAIL_DOMAIN#
+		     , CUST_CELL_NO     = #CUST_CELL_NO#
+		     , CUST_OFIC_NO     = #CUST_OFIC_NO#
+		     , CUST_OFIC_FAX    = #CUST_OFIC_FAX#
+		     , CLNT_CODE        = #CLNT_CODE#
+		     , FILE_UID			= #FILE_UID#
+		     , RMRK             = #RMRK#
+		     , UPDT_ID          = #UPDT_ID#
+		     , UPDT_DT          = GETDATE()
+		 WHERE COMP_ID          = #COMP_ID#
+	</statement>
+
+	<statement id="compmngt.deleteComp" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [CompMngtController] compmngt.deleteComp */
+		  FROM FCA_COMP
+		 WHERE COMP_ID = #COMP_ID#
+	</statement>
+
+	<statement id="compmngt.selectDistinctValue" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [CompMngtController] compmngt.selectCheckRepetiValue */
+			   COUNT(*) AS CNT
+		  FROM FCA_COMP
+		 WHERE 1 = 1
+		   AND COMP_ID <![CDATA[<>]]> #COMP_ID#
+		   AND $ID$ = #VALUE#
+	</statement>
+
+	<statement id="compmngt.getCompExcelList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [CompMngtController] compmngt.getCompExcelList */ 
+			  A.COMP_DIV, CD1.CD_DESC AS COMP_DIV_DESC, A.COMP_NM, A.TAX_NO
+		    , SUBSTRING(A.TAX_NO,1,3) + '-' + SUBSTRING(A.TAX_NO,4,2) + '-' + SUBSTRING(A.TAX_NO,6,5) AS TAX_NO_VIEW
+		    , A.MAST_NM, A.CLNT_CODE, A.CUST_MNG_NM, A.CUST_CELL_NO
+		    , A.CUST_OFIC_NO, A.CUST_OFIC_FAX
+		    , CASE A.CUST_MAIL_ID WHEN NULL THEN '' WHEN '' THEN '' ELSE A.CUST_MAIL_ID + '@' + A.CUST_MAIL_DOMAIN END AS CUST_MAIL_INFO
+		  FROM FCA_COMP AS A
+		       INNER JOIN FCA_CODE AS CD1 ON CD1.CD_TYPE = 'comp_div' AND CD1.CD = A.COMP_DIV
+		 WHERE 1 = 1
+		   <isNotEmpty property="COMP_NM">
+		   AND COMP_NM LIKE '%'+ #COMP_NM# + '%'
+		   </isNotEmpty>
+		   <isNotEmpty property="TAX_NO">
+		   AND TAX_NO LIKE '%'+ REPLACE(#TAX_NO#,'-','') + '%'
+		   </isNotEmpty>
+		   <isNotEmpty property="MAST_NM">
+		   AND MAST_NM LIKE '%'+ #MAST_NM# + '%'
+		   </isNotEmpty>
+		   <isNotEmpty property="CUST_MNG_NM">
+		   AND CUST_MNG_NM LIKE '%'+ #CUST_MNG_NM# + '%'
+		   </isNotEmpty>		 
+	</statement>
+	
+	<statement id="compmngt.getCompDelValid" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT /* [CompMngtController] compmngt.getCompDelValid */
+			   CASE 
+		        WHEN (SELECT COUNT(*) FROM FCA_SHOP AS FS WHERE FS.COMP_ID = #COMP_ID#) > 0 THEN 'COM_ERR_0015' /*해당 고객사에 연결되어 있는 매장이 존재합니다.*/
+		        WHEN (SELECT COUNT(*) FROM FCA_CNCT AS FN WHERE FN.COMP_ID = #COMP_ID#) > 0 THEN 'COM_ERR_0035' /*해당 고객사에 연결되어 있는 계약이 존재합니다.*/
+		        ELSE 'Y' END AS RSLT
+		  FROM FCA_COMP AS FC
+		 WHERE FC.COMP_ID = #COMP_ID#
+	</statement>
+	
+	<!-- 업체명 Combo 정의 Start -->
+	
+	<statement id="compmngt.selectCompCombo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT COMP_ID AS CD, COMP_NM AS CD_DESC
+		  FROM FCA_COMP	
+	</statement>
+	
+	<!-- 업체명 Combo 정의 End -->
+	
+</sqlMap>
+

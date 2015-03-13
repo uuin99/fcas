@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="authmenumngt">
+	<statement id="authmenumngt.getAuthMenu" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [AuthMenuMngtController] authmenumngt.getAuthMenu */
+		       A.MENU_ID AS id
+		     , A.MENU_ID, A.MENU_NM, A.ORDR_SEQ, A.PRNT_MENU_ID, A.LEVL, A.STEP
+		     , A.HAS_CHILD, A.PROG_ID, ISNULL(B.USE_YN,'N') AS USE_YN
+		     , B.REGI_ID, dbo.FN_USER_NM(B.REGI_ID) AS REGI_NM, CONVERT(VARCHAR, B.REGI_DT, 120) AS REGI_DT
+		  FROM FCA_MENU AS A
+		       LEFT OUTER JOIN (SELECT * FROM FCA_AUTH_MENU WHERE AUTH = #AUTH#) AS B
+		       ON A.MENU_ID = B.MENU_ID
+		 WHERE A.USE_YN = 'Y'
+		 ORDER BY A.ORDR_SEQ
+	</statement>
+	
+	<statement id="authmenumngt.insertAuthMenu" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT INTO /* [AuthMenuMngtController] authmenumngt.insertAuthMenu */
+		      FCA_AUTH_MENU
+		      (AUTH, MENU_ID, USE_YN
+		     , REGI_ID, REGI_DT)
+		VALUES
+		      (dbo.FN_NULL(#AUTH#), dbo.FN_NULL(#MENU_ID#), #USE_YN#
+		     , #USER_ID#, GETDATE())
+	</statement>
+	
+	<statement id="authmenumngt.deleteAuthMenu" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [AuthMenuMngtController] authmenumngt.deleteAuthMenu */
+		  FROM FCA_AUTH_MENU
+		 WHERE AUTH = #AUTH#
+	</statement>
+</sqlMap>

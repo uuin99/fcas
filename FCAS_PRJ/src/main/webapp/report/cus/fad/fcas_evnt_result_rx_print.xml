@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<gubun>
+	<rpt1>
+<rexdataset>
+  <rexrow>
+    <evntNm>테스트1</evntNm>
+    <evntStrtDate>12/09/01</evntStrtDate>
+    <evntEndDate>12/09/04</evntEndDate>
+    <salesAmt>1240000</salesAmt>
+    <enterCnt>696308</enterCnt>
+    <buyCsCnt>247132</buyCsCnt>
+    <buyCsAmt>5</buyCsAmt>
+    <buyCsRate>35</buyCsRate>
+  </rexrow>
+  <rexrow>
+    <evntNm>테스트2</evntNm>
+    <evntStrtDate>12/09/05</evntStrtDate>
+    <evntEndDate>12/09/09</evntEndDate>
+    <salesAmt>1906000</salesAmt>
+    <enterCnt>1080560</enterCnt>
+    <buyCsCnt>492290</buyCsCnt>
+    <buyCsAmt>4</buyCsAmt>
+    <buyCsRate>46</buyCsRate>
+  </rexrow>
+  <rexrow>
+    <evntNm>지누기 이벤트 테스트1</evntNm>
+    <evntStrtDate>12/09/10</evntStrtDate>
+    <evntEndDate>12/09/13</evntEndDate>
+    <salesAmt>0</salesAmt>
+    <enterCnt>0</enterCnt>
+    <buyCsCnt>0</buyCsCnt>
+    <buyCsAmt>0</buyCsAmt>
+    <buyCsRate>0</buyCsRate>
+  </rexrow>
+</rexdataset>
+	</rpt1>
+</gubun>

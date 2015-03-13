@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="progmngt">
+	<statement id="progmngt.getProg" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [ProgMngtController] progmngt.getProg */
+		       A.*
+		  FROM (
+		SELECT ROW_NUMBER() OVER(ORDER BY PROG_ID) AS ROWNUM
+		     , PROG_ID, PROG_NM, PROG_DESC, TRGT_URL
+		     , REGI_ID, dbo.FN_USER_NM(REGI_ID) AS REGI_NM, CONVERT(VARCHAR, REGI_DT, 120) AS REGI_DT
+		     , UPDT_ID, dbo.FN_USER_NM(UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR, UPDT_DT, 120) AS UPDT_DT
+		  FROM FCA_PROG
+		 WHERE 1 = 1
+		   <isNotEmpty property="PROG_NM">
+		   AND PROG_NM LIKE '%'+#PROG_NM#+'%'
+		   </isNotEmpty>
+		) AS A
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+		 ORDER BY ROWNUM
+	</statement>
+	
+	<statement id="progmngt.getProgCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [ProgMngtController] progmngt.getProgCount */
+		       COUNT(*) CNT
+		  FROM FCA_PROG
+		 WHERE 1 = 1
+		   <isNotEmpty property="PROG_NM">
+		   AND PROG_NM LIKE '%'+#PROG_NM#+'%'
+		   </isNotEmpty>
+	</statement>
+	
+	<statement id="progmngt.insertProg" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT INTO /* [ProgMngtController] progmngt.insertProg */
+		      FCA_PROG
+		      (PROG_ID, PROG_NM, PROG_DESC, TRGT_URL
+		     , REGI_ID, REGI_DT, UPDT_ID, UPDT_DT)
+		VALUES
+		      (dbo.FN_NULL(#PROG_ID#), dbo.FN_NULL(#PROG_NM#), #PROG_DESC#, #TRGT_URL#
+		     , #USER_ID#, GETDATE(), #USER_ID#, GETDATE())
+	</statement>
+	
+	<statement id="progmngt.updateProg" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [ProgMngtController] progmngt.updateProg */
+		       FCA_PROG
+		   SET PROG_NM   = dbo.FN_NULL(#PROG_NM#)
+		     , PROG_DESC = #PROG_DESC#
+		     , TRGT_URL  = #TRGT_URL#
+		     , UPDT_ID   = #USER_ID#
+		     , UPDT_DT   = GETDATE()
+		 WHERE PROG_ID = #PROG_ID#
+	</statement>
+	
+	<statement id="progmngt.deleteProg" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [ProgMngtController] progmngt.deleteProg */
+		  FROM FCA_PROG
+		 WHERE PROG_ID = #PROG_ID#
+	</statement>
+</sqlMap>

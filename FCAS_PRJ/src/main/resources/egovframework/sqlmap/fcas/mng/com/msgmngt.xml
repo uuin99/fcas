@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="msgmngt">
+	<!-- 메시지관리 Start -->
+	<statement id="msgmngt.getMsg" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT /* [MsgMngtController] msgmngt.getMsg */
+		       E.*
+		  FROM (
+		  		<!-- 쿼리 구현 Start -->
+				SELECT  ROW_NUMBER() OVER(ORDER BY A.CD) AS ROWNUM
+					  , A.CD, A.CD_DESC
+				      , A.REGI_ID AS REGI_ID, dbo.FN_USER_NM(REGI_ID) AS REGI_NM, CONVERT(VARCHAR,A.REGI_DT,120) AS REGI_DT
+				      , A.UPDT_ID AS UPDT_ID, dbo.FN_USER_NM(UPDT_ID) AS UPDT_NM, CONVERT(VARCHAR,A.UPDT_DT,120) AS UPDT_DT
+				  FROM  FCA_MSG AS A
+				 WHERE 1=1
+				   <isNotEmpty property="CD">
+				   AND A.CD LIKE '%'+#CD#+'%'
+				   </isNotEmpty>
+				   <isNotEmpty property="CD_DESC">
+				   AND A.CD_DESC LIKE '%'+#CD_DESC#+'%'
+				   </isNotEmpty>
+				 <!-- 쿼리 구현 End -->
+		) AS E
+		 <isNotEmpty property="start">
+         WHERE ROWNUM <![CDATA[>]]> $start$ AND ROWNUM <![CDATA[<=]]> $start$ + $limit$
+         </isNotEmpty>
+	</statement>
+	
+	<statement id="msgmngt.getMsgCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT /* [MsgMngtController] msgmngt.getMsgCount */
+		       COUNT(*) CNT
+		  FROM  FCA_MSG AS A
+		 WHERE 1=1
+		   <isNotEmpty property="CD">
+		   AND A.CD LIKE '%'+#CD#+'%'
+		   </isNotEmpty>
+		   <isNotEmpty property="CD_DESC">
+		   AND A.CD_DESC LIKE '%'+#CD_DESC#+'%'
+		   </isNotEmpty>
+	</statement>
+	
+	<statement id="msgmngt.insertMsg" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		INSERT INTO /* [MsgMngtController] msgmngt.insertCode */
+	          FCA_MSG
+	          (CD, CD_DESC
+	         , REGI_ID, REGI_DT, UPDT_ID, UPDT_DT)
+	    VALUES
+	          (dbo.FN_NULL(#CD#), dbo.FN_NULL(#CD_DESC#)
+	         , #USER_ID#, GETDATE(), #USER_ID#, GETDATE())
+	</statement>
+	
+	<statement id="msgmngt.updateMsg" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		UPDATE /* [MsgMngtController] msgmngt.udpateMsg */
+		      FCA_MSG
+		   SET CD_DESC = dbo.FN_NULL(#CD_DESC#)
+		     , UPDT_ID = #USER_ID#
+		     , UPDT_DT = GETDATE()
+		 WHERE 1=1
+		   AND CD = #CD#
+	</statement>
+	
+	<statement id="msgmngt.deleteMsg" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		DELETE /* [MsgMngtController] msgmngt.deleteMsg */
+		  FROM FCA_MSG 
+		 WHERE 1=1
+		   AND CD = #CD#
+	</statement>
+	<!-- 메시지관리 End -->
+	
+</sqlMap>
